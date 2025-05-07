@@ -1,31 +1,6 @@
 <script lang="ts">
   import { fade, fly } from 'svelte/transition';
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
-
-  let message = '';
-  let error = '';
-  let loading = true;
-
-  onMount(async () => {
-    try {
-      const response = await fetch('/api/paranoia');
-      const data = await response.json() as { message?: string; error?: string };
-      
-      if (data.error) {
-        error = data.error;
-      } else if (data.message) {
-        message = data.message;
-      } else {
-        error = 'Invalid response format';
-      }
-    } catch (e) {
-      error = 'Failed to fetch message';
-      console.error('Fetch error:', e);
-    } finally {
-      loading = false;
-    }
-  });
 </script>
 
 <div class="max-w-4xl mx-auto bg-black/80 border-2 border-green-500/30 rounded-lg p-12 shadow-[0_0_20px_rgba(0,255,0,0.2)] backdrop-blur-sm relative overflow-hidden" in:fade={{ duration: 1000, delay: 500 }}>
@@ -78,17 +53,6 @@
       </div>
     </div>
 
-<div class="container">
-    <h1>Paranoia Message</h1>
-    
-    {#if loading}
-        <p>Loading...</p>
-    {:else if error}
-        <p class="error">{error}</p>
-    {:else}
-        <p class="message">{message}</p>
-    {/if}
-</div>
 
 <style>
     .container {
