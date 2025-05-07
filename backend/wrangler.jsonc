@@ -1,6 +1,7 @@
 {
   "name": "party-app",
   "main": "./PartyApp.ts",
+  "compatibility_date": "2025-05-07",
   "durable_objects": {
 		"bindings": [
 			{

@@ -30,7 +30,10 @@
             error = 'Please enter your name';
             return;
         }
-        goto(`/paranoia/${name}`);
+        // Generate a unique room ID
+        const roomId = crypto.randomUUID();
+        // Pass both name and roomId to the game page
+        goto(`/paranoia/${roomId}?name=${encodeURIComponent(name.trim())}`);
     }
 </script>
 

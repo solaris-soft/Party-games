@@ -1,0 +1,19 @@
+{
+  "name": "party-games-backend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types && mv worker-configuration.d.ts src/"
+  },
+  "dependencies": {
+    "wrangler": "4`"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

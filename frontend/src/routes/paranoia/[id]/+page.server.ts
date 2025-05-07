@@ -1,15 +1,29 @@
 import type { PageServerLoad } from './$types';
+import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, platform }) => {
-	if (!platform?.env.PARTY_APP) {
-		return { error: 'Service binding not available' };
+	if (!platform?.env.PARANOIA) {
+		throw error(500, 'Service binding not available');
+	}
+
+	const roomId = params.id;
+	if (!roomId) {
+		throw error(400, 'Room ID is required');
 	}
 
 	try {
-		const message = await platform.env.PARTY_APP.getParanoiaMessage();
-		return { hello: message };
-	} catch (error) {
-		console.error('Error calling service binding:', error);
-		return { error: 'Failed to get message' };
+		// Create a unique ID for this room if it doesn't exist
+		console.log('Test', platform.env.PARANOIA)
+		const id = platform.env.PARANOIA.idFromName(roomId);
+		const room = platform.env.PARANOIA.get(id);
+
+		// Return the room ID and service binding for client-side use
+		return {
+			roomId,
+			serviceBinding: platform.env.PARANOIA
+		};
+	} catch (err) {
+		console.error('Error initializing game room:', err);
+		throw error(500, 'Failed to initialize game room');
 	}
 };
