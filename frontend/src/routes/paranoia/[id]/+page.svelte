@@ -1,28 +1,29 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { page } from '$app/stores';
 	import { fly, scale } from 'svelte/transition';
+	import { page } from '$app/stores';
 
-	export let data;
+	let {data} = $props();
+	let pageStore = $state(page);
 
 	let ws: WebSocket | null = null;
 	let playerName = '';
-	let isConnected = false;
-	let isConnecting = false;
-	let players: { id: string; name: string; ready: boolean }[] = [];
-	let currentPlayer: { id: string; name: string } | null = null;
-	let questionAsker: { id: string; name: string } | null = null;
-	let coinFlipper: { id: string; name: string } | null = null;
-	let currentQuestion: string | null = null;
-	let currentAnswer: { id: string; name: string } | null = null;
-	let gameStatus: 'waiting' | 'answering' | 'flipping' | 'revealing' = 'waiting';
-	let error: string | null = null;
+	let isConnected = $state(false);
+	let isConnecting = $state(false);
+	let players: { id: string; name: string; ready: boolean }[] = $state([]);
+	let currentPlayer: { id: string; name: string } | null = $state(null);
+	let questionAsker: { id: string; name: string } | null = $state(null);
+	let coinFlipper: { id: string; name: string } | null = $state(null);
+	let currentQuestion: string | null = $state(null);
+	let currentAnswer: { id: string; name: string } | null = $state(null);
+	let gameStatus: 'waiting' | 'answering' | 'flipping' | 'revealing' = $state('waiting');
+	let error: string | null = $state(null);
 	let playerId = crypto.randomUUID();
-	let questionSent = false;
-	let hasSubmittedQuestion = false;
-	let coinFlipResult: boolean | null = null;
-	let showCoinResult = false;
-	let roundEndTimeout: number | null = null;
+	let questionSent = $state(false);
+	let hasSubmittedQuestion = $state(false);
+	let coinFlipResult: boolean | null = $state(null);
+	let showCoinResult = $state(false);
+	let roundEndTimeout: number | null = $state(null);
 
 	onMount(() => {
 		// Get player name from URL parameters
@@ -57,7 +58,6 @@
 		ws = new WebSocket(wsUrl);
 
 		ws.onopen = () => {
-			console.log('WebSocket connection established');
 			isConnected = true;
 			isConnecting = false;
 			error = null;
@@ -69,7 +69,6 @@
 		};
 
 		ws.onmessage = (event) => {
-			console.log('Raw message received:', event.data);
 			try {
 				const data = JSON.parse(event.data);
 				handleMessage(data);
@@ -227,9 +226,15 @@
 		}));
 	}
 
-	$: isCurrentPlayer = currentPlayer?.id === playerId;
-	$: isQuestionAsker = questionAsker?.id === playerId;
-	$: isCoinFlipper = coinFlipper?.id === playerId;
+	let isCurrentPlayer = $state(false);
+	let isQuestionAsker = $state(false);
+	let isCoinFlipper = $state(false);
+
+	$effect(() => {
+		isCurrentPlayer = currentPlayer?.id === playerId;
+		isQuestionAsker = questionAsker?.id === playerId;
+		isCoinFlipper = coinFlipper?.id === playerId;
+	});
 </script>
 
 <div class="container">
@@ -273,7 +278,7 @@
 				{#if gameStatus === 'waiting'}
 					<div class="waiting-screen">
 						{#if !players.find(p => p.id === playerId)?.ready}
-							<button class="primary-button" on:click={markReady} in:scale={{ duration: 300 }}>
+							<button class="primary-button" onclick={markReady} in:scale={{ duration: 300 }}>
 								<span class="button-icon">🎮</span>
 								I'm Ready
 							</button>
@@ -296,7 +301,7 @@
 										<div class="player-buttons">
 											{#each players.filter(p => p.id !== playerId) as player, i}
 												<button 
-													on:click={() => submitAnswer(player.id)}
+													onclick={() => submitAnswer(player.id)}
 													class="player-button"
 													in:fly={{ y: 20, duration: 300, delay: i * 100 }}
 												>
@@ -322,11 +327,11 @@
 										type="text"
 										placeholder="Enter your question"
 										bind:value={currentQuestion}
-										on:keydown={(e) => e.key === 'Enter' && submitQuestion(e.currentTarget.value)}
+										onkeydown={(e) => e.key === 'Enter' && submitQuestion(e.currentTarget.value)}
 									/>
 									<button 
 										class="primary-button"
-										on:click={() => submitQuestion(currentQuestion || '')}
+										onclick={() => submitQuestion(currentQuestion || '')}
 										disabled={!currentQuestion?.trim()}
 									>
 										Send Question
@@ -364,7 +369,7 @@
 							<div class="coin-flip-card" in:scale={{ duration: 400 }}>
 								<p class="answer-label">Answer:</p>
 								<p class="answer-name">{currentAnswer?.name}</p>
-								<button class="primary-button flip-button" on:click={flipCoin}>
+								<button class="primary-button flip-button" onclick={flipCoin}>
 									<span class="button-icon">🪙</span>
 									Flip Coin
 								</button>
