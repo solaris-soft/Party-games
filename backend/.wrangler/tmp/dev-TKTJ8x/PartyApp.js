@@ -95,7 +95,8 @@ var Paranoia = class extends DurableObject {
           currentAnswer: null,
           coinFlipper: null,
           currentRound: 0,
-          status: "waiting"
+          status: "waiting",
+          questionAsker: null
         }
       };
       this.gameState.rooms.push(room);
@@ -130,30 +131,33 @@ var Paranoia = class extends DurableObject {
       type: "player_ready",
       playerId
     });
-    if (room.players.every((p) => p.ready)) {
+    if (room.players.every((p) => p.ready) && room.game.status === "waiting") {
       await this.startNewRound(room);
     }
     await this.saveState();
   }
   async startNewRound(room) {
     const randomPlayer = room.players[Math.floor(Math.random() * room.players.length)];
-    const randomFlipper = room.players[Math.floor(Math.random() * room.players.length)];
+    let questionAsker;
+    do {
+      questionAsker = room.players[Math.floor(Math.random() * room.players.length)];
+    } while (questionAsker.id === randomPlayer.id);
     room.game.currentPlayer = randomPlayer;
-    room.game.coinFlipper = randomFlipper;
+    room.game.questionAsker = questionAsker;
     room.game.currentRound++;
     room.game.status = "answering";
     await this.broadcastToRoom(room.id, {
       type: "round_start",
       currentPlayer: randomPlayer,
-      coinFlipper: randomFlipper,
+      questionAsker,
       round: room.game.currentRound
     });
   }
   async handleSubmitQuestion(roomId, playerId, question) {
     const room = this.gameState.rooms.find((r) => r.id === roomId);
-    if (!room || room.game.currentPlayer?.id !== playerId) return;
+    if (!room || room.game.questionAsker?.id !== playerId) return;
     room.game.currentQuestion = question;
-    room.game.status = "flipping";
+    room.game.status = "answering";
     await this.broadcastToRoom(roomId, {
       type: "question_submitted",
       question
@@ -166,9 +170,16 @@ var Paranoia = class extends DurableObject {
     const answerPlayer = room.players.find((p) => p.id === answer);
     if (!answerPlayer) return;
     room.game.currentAnswer = answerPlayer;
+    room.game.status = "flipping";
+    let coinFlipper;
+    do {
+      coinFlipper = room.players[Math.floor(Math.random() * room.players.length)];
+    } while (coinFlipper.id === playerId || coinFlipper.id === answer);
+    room.game.coinFlipper = coinFlipper;
     await this.broadcastToRoom(roomId, {
       type: "answer_submitted",
-      answer: answerPlayer
+      answer: answerPlayer,
+      coinFlipper
     });
     await this.saveState();
   }
@@ -183,9 +194,19 @@ var Paranoia = class extends DurableObject {
       question: isHeads ? room.game.currentQuestion : null,
       answer: room.game.currentAnswer
     });
+    await new Promise((resolve) => setTimeout(resolve, 5e3));
     room.game.currentQuestion = null;
     room.game.currentAnswer = null;
+    room.game.coinFlipper = null;
+    room.game.questionAsker = null;
     room.game.status = "waiting";
+    room.players.forEach((player) => {
+      player.ready = false;
+    });
+    await this.broadcastToRoom(roomId, {
+      type: "round_end",
+      players: room.players
+    });
     await this.saveState();
   }
   async handlePlayerDisconnect(roomId, playerId) {

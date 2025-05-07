@@ -26,6 +26,7 @@ type Game = {
   coinFlipper: Player | null;
   currentRound: number;
   status: 'waiting' | 'answering' | 'flipping' | 'revealing';
+  questionAsker: Player | null;
 }
 
 type GameState = {
@@ -134,7 +135,8 @@ export class Paranoia extends DurableObject<Env> {
           currentAnswer: null,
           coinFlipper: null,
           currentRound: 0,
-          status: 'waiting'
+          status: 'waiting',
+          questionAsker: null
         }
       };
       this.gameState.rooms.push(room);
@@ -180,35 +182,41 @@ export class Paranoia extends DurableObject<Env> {
       playerId
     });
 
-    if (room.players.every(p => p.ready)) {
+    // Check if all players are ready and we're in waiting state
+    if (room.players.every(p => p.ready) && room.game.status === 'waiting') {
       await this.startNewRound(room);
     }
     await this.saveState();
   }
 
   private async startNewRound(room: Room) {
+    // Select random player to be asked
     const randomPlayer = room.players[Math.floor(Math.random() * room.players.length)];
-    const randomFlipper = room.players[Math.floor(Math.random() * room.players.length)];
+    // Select random player to ask the question (different from the one being asked)
+    let questionAsker;
+    do {
+      questionAsker = room.players[Math.floor(Math.random() * room.players.length)];
+    } while (questionAsker.id === randomPlayer.id);
     
     room.game.currentPlayer = randomPlayer;
-    room.game.coinFlipper = randomFlipper;
+    room.game.questionAsker = questionAsker;
     room.game.currentRound++;
     room.game.status = 'answering';
 
     await this.broadcastToRoom(room.id, {
       type: 'round_start',
       currentPlayer: randomPlayer,
-      coinFlipper: randomFlipper,
+      questionAsker: questionAsker,
       round: room.game.currentRound
     });
   }
 
   private async handleSubmitQuestion(roomId: string, playerId: string, question: string) {
     const room = this.gameState.rooms.find(r => r.id === roomId);
-    if (!room || room.game.currentPlayer?.id !== playerId) return;
+    if (!room || room.game.questionAsker?.id !== playerId) return;
 
     room.game.currentQuestion = question;
-    room.game.status = 'flipping';
+    room.game.status = 'answering';
     await this.broadcastToRoom(roomId, {
       type: 'question_submitted',
       question
@@ -224,9 +232,20 @@ export class Paranoia extends DurableObject<Env> {
     if (!answerPlayer) return;
 
     room.game.currentAnswer = answerPlayer;
+    room.game.status = 'flipping';
+    
+    // Select random player to flip the coin
+    let coinFlipper;
+    do {
+      coinFlipper = room.players[Math.floor(Math.random() * room.players.length)];
+    } while (coinFlipper.id === playerId || coinFlipper.id === answer);
+    
+    room.game.coinFlipper = coinFlipper;
+
     await this.broadcastToRoom(roomId, {
       type: 'answer_submitted',
-      answer: answerPlayer
+      answer: answerPlayer,
+      coinFlipper: coinFlipper
     });
     await this.saveState();
   }
@@ -245,10 +264,27 @@ export class Paranoia extends DurableObject<Env> {
       answer: room.game.currentAnswer
     });
 
+    // Wait for 5 seconds before resetting the game state
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     // Reset for next round
     room.game.currentQuestion = null;
     room.game.currentAnswer = null;
+    room.game.coinFlipper = null;
+    room.game.questionAsker = null;
     room.game.status = 'waiting';
+
+    // Reset all players' ready status
+    room.players.forEach(player => {
+      player.ready = false;
+    });
+
+    // Broadcast the reset ready states
+    await this.broadcastToRoom(roomId, {
+      type: 'round_end',
+      players: room.players
+    });
+
     await this.saveState();
   }
 
