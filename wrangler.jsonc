@@ -14,22 +14,12 @@
 	"observability": {
 		"enabled": true
 	},
-	"durable_objects": {
-		"bindings": [
-			{
-				"name": "PARANOIA",
-				"class_name": "Paranoia"
-			}
-		]
-	},
-	"migrations": [
+	"services": [
 		{
-			"tag": "v1",
-			"new_sqlite_classes": [
-			"Paranoia"
-			]
+			"binding": "PARTY_APP",
+			"service": "party-app"
 		}
-	]
+	],
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

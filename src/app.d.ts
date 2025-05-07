@@ -1,13 +1,20 @@
-declare namespace App {
+import { Service } from 'cloudflare:workers';
 
-   interface Platform {
-       env: {
-           COUNTER: DurableObjectNamespace;
-       };
-       context: {
-           waitUntil(promise: Promise): void;
-       };
-       caches: CacheStorage & { default: Cache }
-   }
-
+declare global {
+    namespace App {
+        interface Platform {
+            env: {
+                COUNTER: DurableObjectNamespace;
+                PARTY_APP: Service<{
+                    getParanoiaMessage(): Promise<string>;
+                }>;
+            };
+            context: {
+                waitUntil(promise: Promise): void;
+            };
+            caches: CacheStorage & { default: Cache }
+        }
+    }
 }
+
+export {};

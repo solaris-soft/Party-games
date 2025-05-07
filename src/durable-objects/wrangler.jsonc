@@ -1,0 +1,20 @@
+{
+  "name": "party-app",
+  "main": "./PartyApp.ts",
+  "durable_objects": {
+		"bindings": [
+			{
+				"name": "PARANOIA",
+				"class_name": "Paranoia"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+			"Paranoia"
+			]
+		}
+	]
+}
