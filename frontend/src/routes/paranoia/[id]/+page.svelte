@@ -27,7 +27,7 @@
 	onMount(() => {
 		const urlParams = new URLSearchParams(window.location.search);
 		playerName = urlParams.get('name') || '';
-		
+
 		if (!playerName) {
 			error = 'No player name provided';
 			return;
@@ -58,10 +58,10 @@
 	function connectWebSocket() {
 		if (isConnecting) return;
 		isConnecting = true;
-		
+
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 		const wsUrl = `${protocol}//localhost:8787/ws?roomId=${page.params.id}&playerId=${playerId}`;
-		
+
 		console.log('Connecting to WebSocket:', wsUrl);
 		ws = new WebSocket(wsUrl);
 
@@ -69,10 +69,12 @@
 			isConnected = true;
 			isConnecting = false;
 			error = null;
-			ws?.send(JSON.stringify({
-				type: 'join',
-				name: playerName
-			}));
+			ws?.send(
+				JSON.stringify({
+					type: 'join',
+					name: playerName
+				})
+			);
 		};
 
 		ws.onmessage = (event) => {
@@ -114,21 +116,19 @@
 				break;
 			case 'player_joined':
 				console.log('Player joined:', data.player);
-				if (!players.some(p => p.id === data.player.id)) {
+				if (!players.some((p) => p.id === data.player.id)) {
 					players = [...players, data.player];
 				}
 				console.log('Updated players list:', players);
 				break;
 			case 'player_left':
 				console.log('Player left:', data.playerId);
-				players = players.filter(p => p.id !== data.playerId);
+				players = players.filter((p) => p.id !== data.playerId);
 				console.log('Updated players list:', players);
 				break;
 			case 'player_ready':
 				console.log('Player ready:', data.playerId);
-				players = players.map(p => 
-					p.id === data.playerId ? { ...p, ready: true } : p
-				);
+				players = players.map((p) => (p.id === data.playerId ? { ...p, ready: true } : p));
 				console.log('Updated players list:', players);
 				break;
 			case 'round_end':
@@ -150,7 +150,7 @@
 				coinFlipResult = null;
 				showCoinResult = false;
 				coinFlipper = null;
-				players = players.map(p => ({
+				players = players.map((p) => ({
 					...p,
 					ready: false
 				}));
@@ -188,7 +188,7 @@
 					coinFlipper = null;
 					currentPlayer = null;
 					hasSubmittedQuestion = false;
-					players = players.map(p => ({
+					players = players.map((p) => ({
 						...p,
 						ready: false
 					}));
@@ -198,16 +198,20 @@
 	}
 
 	function markReady() {
-		ws?.send(JSON.stringify({
-			type: 'ready'
-		}));
+		ws?.send(
+			JSON.stringify({
+				type: 'ready'
+			})
+		);
 	}
 
 	function submitQuestion(question: string) {
-		ws?.send(JSON.stringify({
-			type: 'submit_question',
-			question
-		}));
+		ws?.send(
+			JSON.stringify({
+				type: 'submit_question',
+				question
+			})
+		);
 		questionSent = true;
 		hasSubmittedQuestion = true;
 		currentQuestion = '';
@@ -217,16 +221,20 @@
 	}
 
 	function submitAnswer(answerId: string) {
-		ws?.send(JSON.stringify({
-			type: 'submit_answer',
-			answer: answerId
-		}));
+		ws?.send(
+			JSON.stringify({
+				type: 'submit_answer',
+				answer: answerId
+			})
+		);
 	}
 
 	function flipCoin() {
-		ws?.send(JSON.stringify({
-			type: 'flip_coin'
-		}));
+		ws?.send(
+			JSON.stringify({
+				type: 'flip_coin'
+			})
+		);
 	}
 
 	let isCurrentPlayer = $state(false);
@@ -251,7 +259,9 @@
 <div class="relative z-10 p-8">
 	{#if !isConnected}
 		<div class="flex flex-col items-center justify-center min-h-[80vh]">
-			<div class="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+			<div
+				class="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"
+			></div>
 			<p class="text-2xl text-red-400 font-['VT323'] tracking-wider">ESTABLISHING CONNECTION...</p>
 		</div>
 	{:else}
@@ -260,7 +270,7 @@
 			<div class="text-center" in:fly={{ y: -20, duration: 1000, delay: 200 }}>
 				<div class="flex items-center justify-center gap-4">
 					<p class="text-2xl text-red-500/70 tracking-widest uppercase">Room: {page.params.id}</p>
-					<button 
+					<button
 						class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all duration-300 hover:border-red-500 font-['VT323'] tracking-wider"
 						onclick={copyRoomId}
 					>
@@ -272,12 +282,20 @@
 			<!-- Game Container -->
 			<div class="grid grid-cols-1 lg:grid-cols-[300px,1fr] gap-8">
 				<!-- Players List -->
-				<div class="bg-black/50 border border-red-500/30 p-6 rounded-none" in:fly={{ x: -20, duration: 800, delay: 200 }}>
-					<h2 class="text-2xl font-['VT323'] text-red-400 mb-6 tracking-wider uppercase">Players</h2>
+				<div
+					class="bg-black/50 border border-red-500/30 p-6 rounded-none"
+					in:fly={{ x: -20, duration: 800, delay: 200 }}
+				>
+					<h2 class="text-2xl font-['VT323'] text-red-400 mb-6 tracking-wider uppercase">
+						Players
+					</h2>
 					<div class="space-y-3">
 						{#each players as player, i}
-							<div 
-								class="bg-black/50 border border-red-500/30 p-4 transition-all duration-300 hover:bg-red-500/10 {player.id === currentPlayer?.id ? 'border-red-500' : ''}"
+							<div
+								class="bg-black/50 border border-red-500/30 p-4 transition-all duration-300 hover:bg-red-500/10 {player.id ===
+								currentPlayer?.id
+									? 'border-red-500'
+									: ''}"
 								in:fly={{ y: 20, duration: 400, delay: i * 100 }}
 							>
 								<div class="flex justify-between items-center">
@@ -287,11 +305,15 @@
 									{/if}
 								</div>
 								{#if player.id === questionAsker?.id}
-									<span class="inline-block mt-2 px-3 py-1 text-sm bg-red-500/20 text-red-400 border border-red-500/30 font-['VT323'] tracking-wider">
+									<span
+										class="inline-block mt-2 px-3 py-1 text-sm bg-red-500/20 text-red-400 border border-red-500/30 font-['VT323'] tracking-wider"
+									>
 										INTERROGATING
 									</span>
 								{:else if player.id === coinFlipper?.id}
-									<span class="inline-block mt-2 px-3 py-1 text-sm bg-red-500/20 text-red-400 border border-red-500/30 font-['VT323'] tracking-wider">
+									<span
+										class="inline-block mt-2 px-3 py-1 text-sm bg-red-500/20 text-red-400 border border-red-500/30 font-['VT323'] tracking-wider"
+									>
 										FLIPPING
 									</span>
 								{/if}
@@ -301,11 +323,14 @@
 				</div>
 
 				<!-- Game Status -->
-				<div class="bg-black/50 border border-red-500/30 p-8 rounded-none" in:fly={{ x: 20, duration: 800, delay: 400 }}>
+				<div
+					class="bg-black/50 border border-red-500/30 p-8 rounded-none"
+					in:fly={{ x: 20, duration: 800, delay: 400 }}
+				>
 					{#if gameStatus === 'waiting'}
 						<div class="flex flex-col items-center justify-center min-h-[400px]">
-							{#if !players.find(p => p.id === playerId)?.ready}
-								<button 
+							{#if !players.find((p) => p.id === playerId)?.ready}
+								<button
 									class="px-8 py-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all duration-300 hover:border-red-500 font-['VT323'] text-xl tracking-wider uppercase"
 									onclick={markReady}
 									in:scale={{ duration: 300 }}
@@ -314,7 +339,9 @@
 								</button>
 							{:else}
 								<div class="flex flex-col items-center gap-4 text-red-500/70">
-									<div class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+									<div
+										class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
+									></div>
 									<p class="font-['VT323'] text-xl tracking-wider">AWAITING SUBJECTS...</p>
 								</div>
 							{/if}
@@ -322,15 +349,26 @@
 					{:else if gameStatus === 'answering'}
 						{#if isCurrentPlayer}
 							<div class="space-y-6">
-								<h3 class="text-2xl font-['VT323'] text-center text-red-400 tracking-wider uppercase">You are being interrogated</h3>
+								<h3
+									class="text-2xl font-['VT323'] text-center text-red-400 tracking-wider uppercase"
+								>
+									You are being interrogated
+								</h3>
 								{#if currentQuestion}
-									<div class="bg-black/50 border border-red-500/30 p-8" in:scale={{ duration: 400 }}>
-										<p class="text-xl font-['VT323'] text-red-400 mb-8 tracking-wider">{currentQuestion}</p>
+									<div
+										class="bg-black/50 border border-red-500/30 p-8"
+										in:scale={{ duration: 400 }}
+									>
+										<p class="text-xl font-['VT323'] text-red-400 mb-8 tracking-wider">
+											{currentQuestion}
+										</p>
 										<div class="space-y-4">
-											<h4 class="text-lg text-red-500/70 font-['VT323'] tracking-wider">Select your target:</h4>
+											<h4 class="text-lg text-red-500/70 font-['VT323'] tracking-wider">
+												Select your target:
+											</h4>
 											<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-												{#each players.filter(p => p.id !== playerId) as player, i}
-													<button 
+												{#each players.filter((p) => p.id !== playerId) as player, i}
+													<button
 														onclick={() => submitAnswer(player.id)}
 														class="p-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all duration-300 hover:border-red-500 font-['VT323'] tracking-wider"
 														in:fly={{ y: 20, duration: 300, delay: i * 100 }}
@@ -343,16 +381,25 @@
 									</div>
 								{:else}
 									<div class="flex flex-col items-center gap-4 text-red-500/70">
-										<div class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+										<div
+											class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
+										></div>
 										<p class="font-['VT323'] text-xl tracking-wider">AWAITING QUESTION...</p>
 									</div>
 								{/if}
 							</div>
 						{:else if isQuestionAsker}
 							<div class="space-y-6">
-								<h3 class="text-2xl font-['VT323'] text-center text-red-400 tracking-wider uppercase">Interrogate {currentPlayer?.name}</h3>
+								<h3
+									class="text-2xl font-['VT323'] text-center text-red-400 tracking-wider uppercase"
+								>
+									Interrogate {currentPlayer?.name}
+								</h3>
 								{#if !hasSubmittedQuestion}
-									<div class="flex flex-col md:flex-row gap-4 items-center justify-center" in:fly={{ y: 20, duration: 400 }}>
+									<div
+										class="flex flex-col md:flex-row gap-4 items-center justify-center"
+										in:fly={{ y: 20, duration: 400 }}
+									>
 										<input
 											type="text"
 											placeholder="Enter your question"
@@ -360,7 +407,7 @@
 											onkeydown={(e) => e.key === 'Enter' && submitQuestion(e.currentTarget.value)}
 											class="w-full md:w-auto flex-1 p-4 bg-black/50 border border-red-500/30 text-red-400 placeholder-red-500/50 font-['VT323'] tracking-wider focus:outline-none focus:border-red-500"
 										/>
-										<button 
+										<button
 											class="px-8 py-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all duration-300 hover:border-red-500 font-['VT323'] text-xl tracking-wider uppercase disabled:opacity-50 disabled:cursor-not-allowed"
 											onclick={() => submitQuestion(currentQuestion || '')}
 											disabled={!currentQuestion?.trim()}
@@ -369,33 +416,53 @@
 										</button>
 									</div>
 									{#if questionSent}
-										<p class="text-red-500 text-center font-['VT323'] tracking-wider" in:scale={{ duration: 300 }}>QUESTION TRANSMITTED</p>
+										<p
+											class="text-red-500 text-center font-['VT323'] tracking-wider"
+											in:scale={{ duration: 300 }}
+										>
+											QUESTION TRANSMITTED
+										</p>
 									{/if}
 								{:else}
 									<div class="flex flex-col items-center gap-4 text-red-500/70">
-										<div class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+										<div
+											class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
+										></div>
 										<p class="font-['VT323'] text-xl tracking-wider">AWAITING RESPONSE...</p>
 									</div>
 								{/if}
 							</div>
 						{:else}
 							<div class="flex flex-col items-center gap-4 text-red-500/70">
-								<div class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+								<div
+									class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
+								></div>
 								{#if currentQuestion}
 									<p class="font-['VT323'] text-xl tracking-wider">AWAITING TARGET SELECTION...</p>
 								{:else}
-									<p class="font-['VT323'] text-xl tracking-wider">AWAITING QUESTION TRANSMISSION...</p>
+									<p class="font-['VT323'] text-xl tracking-wider">
+										AWAITING QUESTION TRANSMISSION...
+									</p>
 								{/if}
 							</div>
 						{/if}
 					{:else if gameStatus === 'flipping'}
 						{#if isCoinFlipper}
 							<div class="flex flex-col items-center gap-6">
-								<h3 class="text-2xl font-['VT323'] text-center text-red-400 tracking-wider uppercase">You are the arbiter</h3>
-								<div class="bg-black/50 border border-red-500/30 p-8 text-center" in:scale={{ duration: 400 }}>
+								<h3
+									class="text-2xl font-['VT323'] text-center text-red-400 tracking-wider uppercase"
+								>
+									You are the arbiter
+								</h3>
+								<div
+									class="bg-black/50 border border-red-500/30 p-8 text-center"
+									in:scale={{ duration: 400 }}
+								>
 									<p class="text-red-500/70 mb-2 font-['VT323'] tracking-wider">Target:</p>
-									<p class="text-2xl font-['VT323'] text-red-400 mb-6 tracking-wider">{currentAnswer?.name}</p>
-									<button 
+									<p class="text-2xl font-['VT323'] text-red-400 mb-6 tracking-wider">
+										{currentAnswer?.name}
+									</p>
+									<button
 										class="px-8 py-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all duration-300 hover:border-red-500 font-['VT323'] text-xl tracking-wider uppercase flex items-center gap-2"
 										onclick={flipCoin}
 									>
@@ -405,7 +472,9 @@
 							</div>
 						{:else}
 							<div class="flex flex-col items-center gap-4 text-red-500/70">
-								<div class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+								<div
+									class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
+								></div>
 								<p class="font-['VT323'] text-xl tracking-wider">AWAITING COIN FLIP...</p>
 							</div>
 						{/if}
@@ -414,26 +483,36 @@
 							{#if showCoinResult}
 								<div class="mb-8" in:fly={{ y: 20, duration: 400 }}>
 									<h3 class="text-2xl font-['VT323'] text-red-400 tracking-wider">
-										Result: 
+										Result:
 										<span class="text-red-500">{coinFlipResult ? 'HEADS' : 'TAILS'}</span>
 									</h3>
 								</div>
 								<div class="bg-black/50 border border-red-500/30 p-8" in:scale={{ duration: 400 }}>
 									{#if coinFlipResult}
 										<div class="space-y-4">
-											<h3 class="text-xl font-['VT323'] text-red-400 tracking-wider">Question: {currentQuestion}</h3>
-											<h3 class="text-xl font-['VT323'] text-red-400 tracking-wider">Target: {currentAnswer?.name}</h3>
+											<h3 class="text-xl font-['VT323'] text-red-400 tracking-wider">
+												Question: {currentQuestion}
+											</h3>
+											<h3 class="text-xl font-['VT323'] text-red-400 tracking-wider">
+												Target: {currentAnswer?.name}
+											</h3>
 										</div>
 									{:else}
 										<div class="space-y-4">
-											<h3 class="text-xl font-['VT323'] text-red-400 tracking-wider">Target: {currentAnswer?.name}</h3>
-											<p class="text-red-500/70 font-['VT323'] tracking-wider italic">Question remains classified</p>
+											<h3 class="text-xl font-['VT323'] text-red-400 tracking-wider">
+												Target: {currentAnswer?.name}
+											</h3>
+											<p class="text-red-500/70 font-['VT323'] tracking-wider italic">
+												Question remains classified
+											</p>
 										</div>
 									{/if}
 								</div>
 							{:else}
 								<div class="flex flex-col items-center gap-4 text-red-500/70">
-									<div class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+									<div
+										class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
+									></div>
 									<p class="font-['VT323'] text-xl tracking-wider">PREPARING NEXT ROUND...</p>
 								</div>
 							{/if}
@@ -445,7 +524,10 @@
 	{/if}
 
 	{#if error}
-		<div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500/20 text-red-400 px-6 py-4 border border-red-500/30 font-['VT323'] tracking-wider" in:fly={{ y: 20, duration: 400 }}>
+		<div
+			class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500/20 text-red-400 px-6 py-4 border border-red-500/30 font-['VT323'] tracking-wider"
+			in:fly={{ y: 20, duration: 400 }}
+		>
 			<span class="mr-2">[ ERROR ]</span>
 			{error}
 		</div>
@@ -454,12 +536,30 @@
 
 <style>
 	@keyframes glitch {
-		0% { transform: translate(0); filter: brightness(1); }
-		20% { transform: translate(-2px, 2px); filter: brightness(1.2); }
-		40% { transform: translate(-2px, -2px); filter: brightness(0.8); }
-		60% { transform: translate(2px, 2px); filter: brightness(1.2); }
-		80% { transform: translate(2px, -2px); filter: brightness(0.8); }
-		100% { transform: translate(0); filter: brightness(1); }
+		0% {
+			transform: translate(0);
+			filter: brightness(1);
+		}
+		20% {
+			transform: translate(-2px, 2px);
+			filter: brightness(1.2);
+		}
+		40% {
+			transform: translate(-2px, -2px);
+			filter: brightness(0.8);
+		}
+		60% {
+			transform: translate(2px, 2px);
+			filter: brightness(1.2);
+		}
+		80% {
+			transform: translate(2px, -2px);
+			filter: brightness(0.8);
+		}
+		100% {
+			transform: translate(0);
+			filter: brightness(1);
+		}
 	}
 
 	.animate-glitch {

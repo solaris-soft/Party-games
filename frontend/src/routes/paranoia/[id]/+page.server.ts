@@ -12,10 +12,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 	}
 
 	try {
-		// Create a unique ID for this room if it doesn't exist
-		const id = platform.env.PARANOIA.idFromName(roomId);
-		const room = platform.env.PARANOIA.get(id);
-
 		// Return the room ID and service binding for client-side use
 		return {
 			roomId,
