@@ -1,5 +1,34 @@
-<script>
+<script lang="ts">
   import { goto } from '$app/navigation';
+  import { fly, fade, scale } from 'svelte/transition';
+  import { onMount } from 'svelte';
+  
+  let showContent = false;
+  let titleText = 'MURDER';
+  let whisperText = '';
+  const whispers = [
+    'trust no one...',
+    'someone is watching...',
+    'who can you trust?',
+    'the killer is among us...',
+    'everyone is a suspect...'
+  ];
+  let whisperInterval: ReturnType<typeof setInterval>;
+  
+  onMount(() => {
+    showContent = true;
+    
+    // Create subtle whisper effect
+    let whisperIndex = 0;
+    whisperInterval = setInterval(() => {
+      whisperText = whispers[whisperIndex];
+      whisperIndex = (whisperIndex + 1) % whispers.length;
+    }, 3000);
+
+    return () => {
+      clearInterval(whisperInterval);
+    };
+  });
   
   function navigateToSetup() {
     goto('/murder/setup');
@@ -7,106 +36,151 @@
 </script>
 
 <div class="min-h-screen bg-black relative overflow-hidden">
-  <!-- Blood splatter overlay -->
+  <!-- Psychological overlay -->
   <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/2 left-1/2 w-96 h-96 bg-red-900/10 rounded-full blur-3xl"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.8)_100%)]"></div>
   </div>
 
   <!-- Main content -->
   <div class="relative z-10 px-4 py-8 max-w-4xl mx-auto">
-    <!-- Title with glow effect -->
-    <h1 class="text-7xl md:text-8xl font-['Creepster'] text-center text-red-600 mb-12 animate-pulse drop-shadow-[0_0_15px_rgba(255,0,0,0.5)]">
-      MURDER
+    <!-- Title with subtle distortion -->
+    <h1 
+      class="text-7xl md:text-8xl font-['Creepster'] text-center text-red-600 mb-12 drop-shadow-[0_0_15px_rgba(255,0,0,0.3)] psychological-title"
+      in:fly={{ y: -50, duration: 1000, delay: 200 }}
+    >
+      {titleText}
     </h1>
 
-    <!-- Game description card -->
-    <div class="bg-black/80 backdrop-blur-sm border-2 border-red-800 rounded-xl p-8 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
-      <h2 class="text-3xl md:text-4xl font-['Creepster'] text-center text-red-500 mb-8">
-        The Game of Deception and Survival
-      </h2>
-      
-      <div class="space-y-6">
-        <h3 class="text-2xl font-['Creepster'] text-red-400 mb-4">
-          How to Play:
-        </h3>
-        
-        <ul class="space-y-4">
-          <li class="flex items-start gap-3 text-red-300">
-            <span class="text-2xl">🩸</span>
-            <span>One player is secretly chosen as the murderer</span>
-          </li>
-          <li class="flex items-start gap-3 text-red-300">
-            <span class="text-2xl">🩸</span>
-            <span>Each round consists of two phases:</span>
-          </li>
-          <li class="flex items-start gap-3 text-red-400 ml-6">
-            <span class="text-xl">⚰️</span>
-            <span>Voting Phase: All players vote on who they suspect is the murderer</span>
-          </li>
-          <li class="flex items-start gap-3 text-red-400 ml-6">
-            <span class="text-xl">🔪</span>
-            <span>Murder Phase: The murderer secretly selects their next victim</span>
-          </li>
-          <li class="flex items-start gap-3 text-red-300">
-            <span class="text-2xl">🩸</span>
-            <span>If players vote incorrectly, they all drink and the accused player is eliminated</span>
-          </li>
-          <li class="flex items-start gap-3 text-red-300">
-            <span class="text-2xl">🩸</span>
-            <span>The murderer's victim must drink and is eliminated from the game</span>
-          </li>
-          <li class="flex items-start gap-3 text-red-300">
-            <span class="text-2xl">🩸</span>
-            <span>The murderer wins by eliminating all other players</span>
-          </li>
-          <li class="flex items-start gap-3 text-red-300">
-            <span class="text-2xl">🩸</span>
-            <span>The players win by correctly identifying and voting out the murderer</span>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Start button with hover effects -->
-      <button 
-        on:click={navigateToSetup}
-        class="mt-12 w-full md:w-auto md:px-12 py-4 text-2xl font-['Creepster'] text-white bg-red-800 hover:bg-red-700 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,0,0,0.5)] flex items-center justify-center gap-3 group"
+    {#if showContent}
+      <!-- Game description card -->
+      <div 
+        class="bg-black/90 backdrop-blur-sm border border-red-900/50 rounded-xl p-8 shadow-[0_0_30px_rgba(255,0,0,0.1)] psychological-card"
+        in:scale={{ duration: 800, delay: 400 }}
       >
-        Begin the Hunt
-        <span class="group-hover:animate-bounce">🔪</span>
-      </button>
-    </div>
-  </div>
+        <!-- Whisper text -->
+        <div class="text-center mb-8">
+          <p class="text-red-400/70 text-lg font-['Special+Elite'] italic psychological-whisper" transition:fade>
+            {whisperText}
+          </p>
+        </div>
 
-  <!-- Floating blood drops -->
-  <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
-    <div class="absolute top-1/4 left-1/4 animate-float-slow">🩸</div>
-    <div class="absolute top-1/3 right-1/4 animate-float-slower">🩸</div>
-    <div class="absolute bottom-1/4 left-1/3 animate-float">🩸</div>
+        <h2 
+          class="text-3xl md:text-4xl font-['Creepster'] text-center text-red-500 mb-8"
+          in:fly={{ y: 20, duration: 800, delay: 600 }}
+        >
+          The Game of Deception and Survival
+        </h2>
+        
+        <div class="space-y-6">
+          <h3 
+            class="text-2xl font-['Special+Elite'] text-red-400 mb-4"
+            in:fly={{ y: 20, duration: 800, delay: 800 }}
+          >
+            How to Play:
+          </h3>
+          
+          <ul class="space-y-4 font-['Special+Elite']">
+            {#each [
+              { icon: '👁️', text: 'One player is secretly chosen as the murderer' },
+              { icon: '⏳', text: 'Each round consists of two phases:' },
+              { icon: '🗳️', text: 'Voting Phase: All players vote on who they suspect is the murderer', indent: true },
+              { icon: '🔪', text: 'Murder Phase: The murderer secretly selects their next victim', indent: true },
+              { icon: '💉', text: 'If players vote incorrectly, they all drink and the accused player is eliminated' },
+              { icon: '💀', text: 'The murderer\'s victim must drink and is eliminated from the game' },
+              { icon: '👑', text: 'The murderer wins by eliminating all other players' },
+              { icon: '🎯', text: 'The players win by correctly identifying and voting out the murderer' }
+            ] as rule, i}
+              <li 
+                class="flex items-start gap-3 text-red-300/90 {rule.indent ? 'ml-6' : ''} psychological-text"
+                in:fly={{ y: 20, duration: 800, delay: 1000 + (i * 100) }}
+              >
+                <span class="text-2xl">{rule.icon}</span>
+                <span>{rule.text}</span>
+              </li>
+            {/each}
+          </ul>
+        </div>
+
+        <!-- Start button with psychological effect -->
+        <button 
+          on:click={navigateToSetup}
+          class="mt-12 w-full md:w-auto md:px-12 py-4 text-2xl font-['Special+Elite'] text-white bg-red-900/80 hover:bg-red-800/90 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,0,0,0.3)] flex items-center justify-center gap-3 group psychological-button"
+          in:fly={{ y: 20, duration: 800, delay: 2000 }}
+        >
+          Begin the Hunt
+          <span class="group-hover:opacity-50 transition-opacity">🔪</span>
+        </button>
+      </div>
+    {/if}
   </div>
 </div>
 
 <style>
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+  /* Psychological effects */
+  .psychological-title {
+    position: relative;
+    animation: subtle-distort 8s infinite;
   }
-  @keyframes float-slow {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
+
+  .psychological-card {
+    position: relative;
+    animation: subtle-pulse 4s infinite;
   }
-  @keyframes float-slower {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+  .psychological-text {
+    position: relative;
+    transition: all 0.3s ease;
   }
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+
+  .psychological-text:hover {
+    text-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+    transform: translateX(4px);
   }
-  .animate-float-slow {
-    animation: float-slow 4s ease-in-out infinite;
+
+  .psychological-whisper {
+    animation: fade-in-out 3s infinite;
   }
-  .animate-float-slower {
-    animation: float-slower 5s ease-in-out infinite;
+
+  .psychological-button {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .psychological-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 0, 0, 0.1),
+      transparent
+    );
+    animation: psychological-scan 3s linear infinite;
+  }
+
+  @keyframes subtle-distort {
+    0%, 100% { transform: skew(0deg); }
+    25% { transform: skew(-0.5deg); }
+    75% { transform: skew(0.5deg); }
+  }
+
+  @keyframes subtle-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.95; }
+  }
+
+  @keyframes fade-in-out {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes psychological-scan {
+    0% { left: -100%; }
+    100% { left: 100%; }
   }
 </style>
