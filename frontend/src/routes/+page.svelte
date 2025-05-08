@@ -13,6 +13,9 @@
 			case 'truth-or-drink':
 				goto('/truth-or-drink');
 				break;
+			case 'murder':
+				goto('/murder');
+				break;
 		}
 	}
 </script>
@@ -38,6 +41,7 @@
 				class="w-full p-4 bg-gray-700 border-2 border-cyan-400 rounded-lg text-cyan-400 focus:outline-none focus:border-pink-500 transition-all duration-300 cursor-pointer hover:border-pink-500"
 			>
 				<option value="paranoia" class="bg-gray-700">Paranoia</option>
+                <option value="murder" class="bg-gray-700">Murder</option>
 				<option value="20-questions" class="bg-gray-700">20 Questions</option>
 				<option value="truth-or-drink" class="bg-gray-700">Truth or Drink</option>
 			</select>

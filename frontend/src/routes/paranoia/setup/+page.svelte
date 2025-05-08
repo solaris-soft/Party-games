@@ -2,12 +2,18 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
+	import { page } from '$app/state';
 
 	let name = $state('');
 	let error = $state('');
 	let glitchActive = $state(false);
+	let returnTo = $state('');
 
 	onMount(() => {
+		// Get return URL if it exists
+		const urlParams = new URLSearchParams(window.location.search);
+		returnTo = urlParams.get('returnTo') || '';
+
 		// Random glitch effect
 		setInterval(() => {
 			if (Math.random() > 0.95) {
@@ -25,10 +31,16 @@
 			error = 'Please enter your name';
 			return;
 		}
-		// Generate a unique room ID
-		const roomId = crypto.randomUUID();
-		// Pass both name and roomId to the game page
-		goto(`/paranoia/${roomId}?name=${encodeURIComponent(name.trim())}`);
+
+		if (returnTo) {
+			// If we have a return URL, use it and append the name
+			const separator = returnTo.includes('?') ? '&' : '?';
+			goto(`${returnTo}${separator}name=${encodeURIComponent(name.trim())}`);
+		} else {
+			// Generate a unique room ID if no return URL
+			const roomId = crypto.randomUUID();
+			goto(`/paranoia/${roomId}?name=${encodeURIComponent(name.trim())}`);
+		}
 	}
 </script>
 

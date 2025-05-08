@@ -29,7 +29,9 @@
 		playerName = urlParams.get('name') || '';
 
 		if (!playerName) {
-			error = 'No player name provided';
+			// Redirect to setup page with return URL
+			const returnUrl = encodeURIComponent(`/paranoia/${page.params.id}`);
+			window.location.href = `/paranoia/setup?returnTo=${returnUrl}`;
 			return;
 		}
 
@@ -60,7 +62,7 @@
 		isConnecting = true;
 
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const wsUrl = `${protocol}//localhost:8787/ws?roomId=${page.params.id}&playerId=${playerId}`;
+		const wsUrl = `${protocol}//localhost:8787/ws/paranoia?roomId=${page.params.id}&playerId=${playerId}`;
 
 		console.log('Connecting to WebSocket:', wsUrl);
 		ws = new WebSocket(wsUrl);
@@ -113,6 +115,18 @@
 			case 'players_list':
 				console.log('Received players list:', data.players);
 				players = data.players;
+				// Reset game state if we have less than 3 players
+				if (players.length < 3) {
+					gameStatus = 'waiting';
+					currentQuestion = null;
+					currentAnswer = null;
+					coinFlipResult = null;
+					showCoinResult = false;
+					questionAsker = null;
+					coinFlipper = null;
+					currentPlayer = null;
+					hasSubmittedQuestion = false;
+				}
 				break;
 			case 'player_joined':
 				console.log('Player joined:', data.player);
@@ -125,6 +139,18 @@
 				console.log('Player left:', data.playerId);
 				players = players.filter((p) => p.id !== data.playerId);
 				console.log('Updated players list:', players);
+				// Reset game state if we have less than 3 players
+				if (players.length < 3) {
+					gameStatus = 'waiting';
+					currentQuestion = null;
+					currentAnswer = null;
+					coinFlipResult = null;
+					showCoinResult = false;
+					questionAsker = null;
+					coinFlipper = null;
+					currentPlayer = null;
+					hasSubmittedQuestion = false;
+				}
 				break;
 			case 'player_ready':
 				console.log('Player ready:', data.playerId);
@@ -141,6 +167,12 @@
 				showCoinResult = false;
 				break;
 			case 'round_start':
+				// Only start the round if we have at least 3 ready players
+				const readyPlayers = players.filter(p => p.ready).length;
+				if (readyPlayers < 3) {
+					console.log('Not enough ready players to start round');
+					return;
+				}
 				currentPlayer = data.currentPlayer;
 				questionAsker = data.questionAsker;
 				gameStatus = 'answering';
@@ -248,7 +280,9 @@
 	});
 
 	function copyRoomId() {
-		navigator.clipboard.writeText(page.params.id);
+		const url = new URL(window.location.href);
+		url.searchParams.delete('name');
+		navigator.clipboard.writeText(url.toString());
 		copySuccess = true;
 		setTimeout(() => {
 			copySuccess = false;
@@ -329,7 +363,16 @@
 				>
 					{#if gameStatus === 'waiting'}
 						<div class="flex flex-col items-center justify-center min-h-[400px]">
-							{#if !players.find((p) => p.id === playerId)?.ready}
+							{#if players.length < 3}
+								<div class="text-center space-y-4">
+									<p class="text-xl font-['VT323'] text-red-500/70 tracking-wider">
+										WAITING FOR MORE PLAYERS...
+									</p>
+									<p class="text-lg font-['VT323'] text-red-500/50 tracking-wider">
+										{3 - players.length} MORE PLAYER{3 - players.length === 1 ? '' : 'S'} NEEDED
+									</p>
+								</div>
+							{:else if !players.find((p) => p.id === playerId)?.ready}
 								<button
 									class="px-8 py-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all duration-300 hover:border-red-500 font-['VT323'] text-xl tracking-wider uppercase"
 									onclick={markReady}

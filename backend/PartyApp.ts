@@ -330,7 +330,7 @@ export default class PartyApp extends WorkerEntrypoint<Env> {
     const url = new URL(request.url);
     
     // Handle WebSocket connections
-    if (url.pathname === '/ws') {
+    if (url.pathname === '/ws/paranoia') {
       const roomId = url.searchParams.get('roomId');
       if (!roomId) {
         return new Response('Missing roomId', { status: 400 });
