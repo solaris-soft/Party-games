@@ -13,7 +13,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
 	try {
 		// Create a unique ID for this room if it doesn't exist
-		console.log('Test', platform.env.PARANOIA)
 		const id = platform.env.PARANOIA.idFromName(roomId);
 		const room = platform.env.PARANOIA.get(id);
 

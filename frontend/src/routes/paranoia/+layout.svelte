@@ -5,35 +5,10 @@
 
   let { children } = $props();
   
-  let isQuestionVisible = false;
-  let isFlipping = false;
-  let showResult = false;
-  let currentQuestion = '';
-  let targetPlayer = '';
-  let players = ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
-  
-  function flipCoin() {
-    isFlipping = true;
-    showResult = false;
-    
-    setTimeout(() => {
-      isFlipping = false;
-      showResult = true;
-      const result = Math.random() > 0.5;
-      if (result) {
-        isQuestionVisible = true;
-      }
-    }, 2000);
-  }
-
-  let isLoaded = false;
-  let glitchActive = false;
-  let staticNoise = false;
+  let glitchActive: boolean = $state(false);
+  let staticNoise: boolean = $state(false);
   
   onMount(() => {
-    setTimeout(() => {
-      isLoaded = true;
-    }, 100);
 
     // Random glitch effect
     setInterval(() => {
@@ -106,19 +81,5 @@
     100% { transform: translateY(100%); }
   }
 
-  @media (max-width: 768px) {
-    .text-8xl {
-      font-size: 3rem;
-    }
-    
-    .p-12 {
-      padding: 2rem;
-    }
-    
-    .flex.gap-8 {
-      flex-direction: column;
-      gap: 1rem;
-    }
-  }
 </style>
 
