@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
         throw error(400, 'Room ID is required');
     }
     if (!playerName) {
-        redirect(302, '/murder');
+        redirect(302, `/murder?roomId=${roomId}`);
     }
 
     return {

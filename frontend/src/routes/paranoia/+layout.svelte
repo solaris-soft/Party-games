@@ -61,7 +61,7 @@
 		<!-- Title Section -->
 		<div class="text-center mb-16" in:fly={{ y: -20, duration: 1000, delay: 200 }}>
 			<h1
-				class="text-8xl font-bold text-red-400 tracking-widest uppercase relative {glitchActive
+				class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-red-400 tracking-widest uppercase relative {glitchActive
 					? 'animate-glitch'
 					: ''} drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]"
 			>

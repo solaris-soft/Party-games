@@ -4,14 +4,20 @@
   import Instructions from './Instructions.svelte';
   import Setup from './Setup.svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/state';
 
   let showContent = false;
   let titleText = 'MURDER';
   let currentStep: 'instructions' | 'setup' = 'instructions';
   let playerName = '';
+  let targetRoomId = page.url.searchParams.get('roomId');
   
   onMount(() => {
     showContent = true;
+    // If we have a roomId, skip instructions and go straight to setup
+    if (targetRoomId) {
+      currentStep = 'setup';
+    }
   });
   
   function handleInstructionsNext() {
@@ -20,7 +26,7 @@
 
   function handleSetupNext(name: string) {
     playerName = name;
-    const roomId = crypto.randomUUID();
+    const roomId = targetRoomId || crypto.randomUUID();
     goto(`/murder/${roomId}?name=${playerName}`);
   }
 </script>

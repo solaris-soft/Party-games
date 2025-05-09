@@ -23,7 +23,7 @@
         isConnecting = true;
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//localhost:8787/ws/murder?roomId=${roomId}&playerId=${data.playerName}`;
+        const wsUrl = `${protocol}//party-app.flat-sound-6551.workers.dev/ws/murder?roomId=${roomId}&playerId=${data.playerName}`;
 
         console.log('Connecting to WebSocket:', wsUrl);
         ws = new WebSocket(wsUrl);
@@ -201,7 +201,16 @@
         </div>
       {/if}
       <p class="text-gray-400 text-center">Room {roomId} - Round {currentRound}</p>
-      <p class="text-gray-400 text-center">Phase: {gamePhase}</p>
+      
+      <!-- Enhanced Phase Indicator -->
+      <div class="my-6 text-center">
+        <div class="inline-block bg-black/70 border-2 border-red-500 rounded-lg px-8 py-3 transform hover:scale-105 transition-transform duration-200">
+          <p class="text-gray-400 text-sm mb-1">Current Phase</p>
+          <p class="font-['Creepster'] text-3xl text-red-500 drop-shadow-[0_0_10px_rgba(255,0,0,0.3)] phase-text">
+            {gamePhase.charAt(0).toUpperCase() + gamePhase.slice(1)}
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- Players Section -->
@@ -265,6 +274,16 @@
   .psychological-title {
     position: relative;
     animation: subtle-distort 8s infinite;
+  }
+
+  .phase-text {
+    position: relative;
+    animation: phase-pulse 2s infinite;
+  }
+
+  @keyframes phase-pulse {
+    0%, 100% { text-shadow: 0 0 10px rgba(255,0,0,0.3); }
+    50% { text-shadow: 0 0 20px rgba(255,0,0,0.5); }
   }
 
   @keyframes subtle-distort {
