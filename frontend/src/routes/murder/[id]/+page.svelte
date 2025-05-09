@@ -17,6 +17,7 @@
     let isConnected = $state(false);
     let isConnecting = $state(false);
     let eliminationResult = $state<{ eliminatedPlayer: string, wasMurderer: boolean } | null>(null);
+    let copySuccess = $state(false);
 
     function connectWebSocket() {
         if (isConnecting) return;
@@ -128,7 +129,14 @@
                 selectedPlayer = null;
                 break;
             case 'error':
-                error = data.error;
+                if (data.error === 'name_exists') {
+                    error = 'This name is already taken. Please choose a different name.';
+                    setTimeout(() => {
+                        window.location.href = `/murder?roomId=${roomId}`;
+                    }, 2000);
+                } else {
+                    error = data.error;
+                }
                 break;
         }
     }
@@ -167,6 +175,23 @@
                 })
             );
         }
+    }
+
+    function copyToClipboard() {
+        // Get just the base URL with the room ID
+        const baseUrl = window.location.origin;
+        const roomId = window.location.pathname.split('/').filter(Boolean).pop();
+        const cleanUrl = `${baseUrl}/murder/${roomId}`;
+        
+        navigator.clipboard.writeText(cleanUrl).then(() => {
+            copySuccess = true;
+            setTimeout(() => {
+                copySuccess = false;
+            }, 2000);
+        }).catch(err => {
+            error = 'Failed to copy URL to clipboard';
+            console.error('Failed to copy:', err);
+        });
     }
 </script>
 
@@ -256,14 +281,24 @@
       </div>
     </div>
 
-    {#if gamePhase === 'waiting' && !isReady}
-      <div class="text-center">
-        <button 
-          class="bg-red-900/50 text-red-200 px-6 py-2 rounded hover:bg-red-800/50 transition-colors duration-200 border border-red-900 font-['Creepster'] text-xl"
-          onclick={handleReady}
-        >
-          Ready to Start
-        </button>
+    {#if gamePhase === 'waiting'}
+      <div class="text-center space-y-4">
+        {#if !isReady}
+          <button 
+            class="bg-red-900/50 text-red-200 px-6 py-2 rounded hover:bg-red-800/50 transition-colors duration-200 border border-red-900 font-['Creepster'] text-xl"
+            onclick={handleReady}
+          >
+            Ready to Start
+          </button>
+        {/if}
+        <div>
+          <button 
+            class="bg-red-900/50 text-red-200 px-6 py-2 rounded hover:bg-red-800/50 transition-colors duration-200 border border-red-900 font-['Creepster'] text-xl"
+            onclick={copyToClipboard}
+          >
+            {copySuccess ? 'Copied!' : 'Invite Others'}
+          </button>
+        </div>
       </div>
     {/if}
   </div>

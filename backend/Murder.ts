@@ -136,6 +136,21 @@ export class Murder extends DurableObject<Env> {
       this.gameState.rooms.push(room);
     }
 
+    // Check for duplicate name in both arrays
+    if (room.players.some(p => p.name === name) || room.game.players.some(p => p.name === name)) {
+      const ws = this.sessions.get(playerId);
+      if (ws) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          error: 'name_exists'
+        }));
+        // Close the WebSocket connection after sending the error
+        ws.close(1000, 'Duplicate name');
+        this.sessions.delete(playerId);
+      }
+      return;
+    }
+
     // Remove any existing player with this ID to prevent duplicates
     room.players = room.players.filter(p => p.id !== playerId);
     room.game.players = room.game.players.filter(p => p.id !== playerId);
