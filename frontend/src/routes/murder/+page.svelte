@@ -3,7 +3,8 @@
   import { onMount } from 'svelte';
   import Instructions from './Instructions.svelte';
   import Setup from './Setup.svelte';
-  
+  import { goto } from '$app/navigation';
+
   let showContent = false;
   let titleText = 'MURDER';
   let currentStep: 'instructions' | 'setup' = 'instructions';
@@ -19,8 +20,8 @@
 
   function handleSetupNext(name: string) {
     playerName = name;
-    // TODO: Handle game start with player name
-    console.log('Game starting with player:', playerName);
+    const roomId = crypto.randomUUID();
+    goto(`/murder/${roomId}?name=${playerName}`);
   }
 </script>
 

@@ -1,10 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ params, platform }) => {
-	if (!platform?.env.PARANOIA) {
-		throw error(500, 'Service binding not available');
-	}
+export const load: PageServerLoad = async ({ params }) => {
+
 
 	const roomId = params.id;
 	if (!roomId) {
@@ -15,7 +13,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 		// Return the room ID and service binding for client-side use
 		return {
 			roomId,
-			serviceBinding: platform.env.PARANOIA
 		};
 	} catch (err) {
 		console.error('Error initializing game room:', err);

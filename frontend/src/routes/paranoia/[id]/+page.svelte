@@ -21,7 +21,6 @@
 	let coinFlipResult: boolean | null = $state(null);
 	let showCoinResult = $state(false);
 	let roundEndTimeout: number | null = $state(null);
-	let glitchActive = $state(false);
 	let copySuccess = $state(false);
 
 	onMount(() => {
@@ -36,16 +35,6 @@
 		}
 
 		connectWebSocket();
-
-		// Random glitch effect
-		setInterval(() => {
-			if (Math.random() > 0.95) {
-				glitchActive = true;
-				setTimeout(() => {
-					glitchActive = false;
-				}, 200);
-			}
-		}, 3000);
 	});
 
 	onDestroy(() => {
@@ -605,7 +594,4 @@
 		}
 	}
 
-	.animate-glitch {
-		animation: glitch 0.3s linear;
-	}
 </style>

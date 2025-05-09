@@ -4,6 +4,8 @@ type Player = {
   id: string;
   name: string;
   ready: boolean;
+  isMurderer: boolean;
+  isAlive: boolean;
   ws?: WebSocket;
 }
 
@@ -18,14 +20,14 @@ type Game = {
   players: Player[];
   murderer: Player | null;
   victims: Player[];
-  votes: Map<Player, Player>;
+  votes: Map<string, string>; // Map of voterId to votedPlayerId
   currentRound: number;
-  status: 'murder' | 'voting' | 'revealing';
+  phase: 'waiting' | 'voting' | 'murder' | 'revealing';
+  eliminatedPlayers: Player[];
 }
 
 type GameState = {
   rooms: Room[];
-  games: Game[];
 }
 
 export class Murder extends DurableObject<Env> {
@@ -38,8 +40,7 @@ export class Murder extends DurableObject<Env> {
     this.state = state;
     this.sessions = new Map();
     this.gameState = {
-      rooms: [],
-      games: []
+      rooms: []
     };
   }
 
@@ -94,24 +95,15 @@ export class Murder extends DurableObject<Env> {
       case 'join':
         await this.handleJoinRoom(roomId, playerId, data.name);
         break;
-      default:
-        const room = this.gameState.rooms.find(r => r.id === roomId);
-        if (!room) return;
-
-        switch (data.type) {
-          case 'ready':
-            await this.handlePlayerReady(roomId, playerId);
-            break;
-          case 'submit_question':
-            await this.handleSubmitQuestion(roomId, playerId, data.question);
-            break;
-          case 'submit_answer':
-            await this.handleSubmitAnswer(roomId, playerId, data.answer);
-            break;
-          case 'flip_coin':
-            await this.handleCoinFlip(roomId, playerId);
-            break;
-        }
+      case 'ready':
+        await this.handlePlayerReady(roomId, playerId);
+        break;
+      case 'vote':
+        await this.handleVote(roomId, playerId, data.votedPlayerId);
+        break;
+      case 'murder':
+        await this.handleMurder(roomId, playerId, data.targetPlayerId);
+        break;
     }
   }
 
@@ -124,13 +116,12 @@ export class Murder extends DurableObject<Env> {
         game: {
           id: roomId,
           players: [],
-          currentPlayer: null,
-          currentQuestion: null,
-          currentAnswer: null,
-          coinFlipper: null,
+          murderer: null,
+          victims: [],
+          votes: new Map(),
           currentRound: 0,
-          status: 'waiting',
-          questionAsker: null
+          phase: 'waiting',
+          eliminatedPlayers: []
         }
       };
       this.gameState.rooms.push(room);
@@ -139,13 +130,14 @@ export class Murder extends DurableObject<Env> {
     const player: Player = {
       id: playerId,
       name,
-      ready: false
+      ready: false,
+      isMurderer: false,
+      isAlive: true
     };
 
     room.players.push(player);
     room.game.players.push(player);
 
-    // Send current players list to the new player
     const ws = this.sessions.get(playerId);
     if (ws) {
       ws.send(JSON.stringify({
@@ -154,11 +146,10 @@ export class Murder extends DurableObject<Env> {
       }));
     }
 
-    // Notify other players about the new player
     await this.broadcastToRoom(roomId, {
       type: 'player_joined',
       player
-    }, [playerId]); // Exclude the new player from this broadcast
+    }, [playerId]);
 
     await this.saveState();
   }
@@ -176,74 +167,157 @@ export class Murder extends DurableObject<Env> {
       playerId
     });
 
-    // Check if all players are ready and we're in waiting state
-    if (room.players.every(p => p.ready) && room.game.status === 'waiting') {
-      await this.startNewRound(room);
+    if (room.players.every(p => p.ready) && room.game.phase === 'waiting') {
+      await this.startNewGame(room);
     }
     await this.saveState();
   }
 
-  private async startNewRound(room: Room) {
-    // Select random player to be asked
-    const randomPlayer = room.players[Math.floor(Math.random() * room.players.length)];
-    // Select random player to ask the question (different from the one being asked)
-    let questionAsker;
-    do {
-      questionAsker = room.players[Math.floor(Math.random() * room.players.length)];
-    } while (questionAsker.id === randomPlayer.id);
-    
-    room.game.currentPlayer = randomPlayer;
-    room.game.questionAsker = questionAsker;
-    room.game.currentRound++;
-    room.game.status = 'answering';
+  private async startNewGame(room: Room) {
+    // Select random murderer
+    const murdererIndex = Math.floor(Math.random() * room.players.length);
+    const murderer = room.players[murdererIndex];
+    murderer.isMurderer = true;
+    room.game.murderer = murderer;
 
+    room.game.phase = 'voting';
+    room.game.currentRound = 1;
+
+    // Notify all players about game start
     await this.broadcastToRoom(room.id, {
+      type: 'game_start',
+      round: room.game.currentRound,
+      phase: room.game.phase
+    });
+
+    // Secretly notify murderer
+    const murdererWs = this.sessions.get(murderer.id);
+    if (murdererWs) {
+      murdererWs.send(JSON.stringify({
+        type: 'you_are_murderer'
+      }));
+    }
+  }
+
+  private async handleVote(roomId: string, playerId: string, votedPlayerId: string) {
+    const room = this.gameState.rooms.find(r => r.id === roomId);
+    if (!room || room.game.phase !== 'voting') return;
+
+    const voter = room.players.find(p => p.id === playerId);
+    const votedPlayer = room.players.find(p => p.id === votedPlayerId);
+    if (!voter || !votedPlayer || !voter.isAlive || !votedPlayer.isAlive) return;
+
+    room.game.votes.set(playerId, votedPlayerId);
+
+    // Check if all alive players have voted
+    const alivePlayers = room.players.filter(p => p.isAlive);
+    if (room.game.votes.size === alivePlayers.length) {
+      await this.resolveVoting(room);
+    }
+  }
+
+  private async handleMurder(roomId: string, playerId: string, targetPlayerId: string) {
+    const room = this.gameState.rooms.find(r => r.id === roomId);
+    if (!room || room.game.phase !== 'murder') return;
+
+    const murderer = room.game.murderer;
+    if (!murderer || murderer.id !== playerId) return;
+
+    const targetPlayer = room.players.find(p => p.id === targetPlayerId);
+    if (!targetPlayer || !targetPlayer.isAlive) return;
+
+    targetPlayer.isAlive = false;
+    room.game.victims.push(targetPlayer);
+    room.game.eliminatedPlayers.push(targetPlayer);
+
+    await this.broadcastToRoom(roomId, {
+      type: 'player_eliminated',
+      playerId: targetPlayerId,
+      reason: 'murdered'
+    });
+
+    // Check for game end conditions
+    if (await this.checkGameEnd(room)) return;
+
+    // Start next round
+    room.game.phase = 'voting';
+    room.game.currentRound++;
+    room.game.votes.clear();
+
+    await this.broadcastToRoom(roomId, {
       type: 'round_start',
-      currentPlayer: randomPlayer,
-      questionAsker: questionAsker,
-      round: room.game.currentRound
+      round: room.game.currentRound,
+      phase: room.game.phase
     });
   }
 
-  private async handleMurder(roomId: string, playerId: string, question: string) {
-    const room = this.gameState.rooms.find(r => r.id === roomId);
-    if (!room || room.game.questionAsker?.id !== playerId) return;
+  private async resolveVoting(room: Room) {
+    // Count votes
+    const voteCount = new Map<string, number>();
+    for (const [_, votedId] of room.game.votes) {
+      voteCount.set(votedId, (voteCount.get(votedId) || 0) + 1);
+    }
 
-    room.game.currentQuestion = question;
-    room.game.status = 'answering';
-    await this.broadcastToRoom(roomId, {
-      type: 'question_submitted',
-      question
-    });
-    await this.saveState();
+    // Find player with most votes
+    let maxVotes = 0;
+    let accusedPlayer: Player | null = null;
+    for (const [playerId, votes] of voteCount) {
+      if (votes > maxVotes) {
+        maxVotes = votes;
+        accusedPlayer = room.players.find(p => p.id === playerId) || null;
+      }
+    }
+
+    if (!accusedPlayer) return;
+
+    // Check if accused is murderer
+    if (accusedPlayer.isMurderer) {
+      // Players win
+      await this.broadcastToRoom(room.id, {
+        type: 'game_end',
+        winner: 'players',
+        murderer: room.game.murderer
+      });
+      room.game.phase = 'waiting';
+    } else {
+      // Wrong accusation
+      accusedPlayer.isAlive = false;
+      room.game.eliminatedPlayers.push(accusedPlayer);
+      await this.broadcastToRoom(room.id, {
+        type: 'player_eliminated',
+        playerId: accusedPlayer.id,
+        reason: 'wrong_accusation'
+      });
+
+      // Check for game end conditions
+      if (await this.checkGameEnd(room)) return;
+
+      // Move to murder phase
+      room.game.phase = 'murder';
+      await this.broadcastToRoom(room.id, {
+        type: 'phase_change',
+        phase: 'murder'
+      });
+    }
   }
 
-  private async handleVoting(roomId: string, playerId: string, answer: string) {
-    const room = this.gameState.rooms.find(r => r.id === roomId);
-    if (!room || room.game.currentPlayer?.id !== playerId) return;
+  private async checkGameEnd(room: Room): Promise<boolean> {
+    const alivePlayers = room.players.filter(p => p.isAlive);
+    const aliveNonMurderers = alivePlayers.filter(p => !p.isMurderer);
 
-    const answerPlayer = room.players.find(p => p.id === answer);
-    if (!answerPlayer) return;
+    if (aliveNonMurderers.length === 0) {
+      // Murderer wins
+      await this.broadcastToRoom(room.id, {
+        type: 'game_end',
+        winner: 'murderer',
+        murderer: room.game.murderer
+      });
+      room.game.phase = 'waiting';
+      return true;
+    }
 
-    room.game.currentAnswer = answerPlayer;
-    room.game.status = 'flipping';
-    
-    // Select random player to flip the coin
-    let coinFlipper;
-    do {
-      coinFlipper = room.players[Math.floor(Math.random() * room.players.length)];
-    } while (coinFlipper.id === playerId || coinFlipper.id === answer);
-    
-    room.game.coinFlipper = coinFlipper;
-
-    await this.broadcastToRoom(roomId, {
-      type: 'answer_submitted',
-      answer: answerPlayer,
-      coinFlipper: coinFlipper
-    });
-    await this.saveState();
+    return false;
   }
-
 
   private async handlePlayerDisconnect(roomId: string, playerId: string) {
     const room = this.gameState.rooms.find(r => r.id === roomId);

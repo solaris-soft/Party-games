@@ -1,8 +1,10 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
 import {Paranoia} from "./Paranoia";
+import {Murder} from "./Murder";
 
 type Env = {
     PARANOIA: DurableObjectNamespace<Paranoia> 
+    MURDER: DurableObjectNamespace<Murder>
   } 
 
 
@@ -23,9 +25,20 @@ export default class PartyApp extends WorkerEntrypoint<Env> {
       return room.fetch(request);
     }
 
+    if (url.pathname === '/ws/murder') {
+      const roomId = url.searchParams.get('roomId');
+      if (!roomId) {
+        return new Response('Missing roomId', { status: 400 });
+      }
+
+      const id = this.env.MURDER.idFromName(roomId);
+      const room = this.env.MURDER.get(id);
+      return room.fetch(request);
+    }
+
     // Handle other requests
     return new Response('Not found', { status: 404 });
   }
 } 
 
-export { Paranoia };
+export { Paranoia, Murder };
