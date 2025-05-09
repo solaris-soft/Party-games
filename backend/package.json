@@ -7,7 +7,7 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "wrangler": "4`"
+    "wrangler": "^4.14.4"
   },
   "private": true,
   "devDependencies": {

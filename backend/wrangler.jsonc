@@ -11,6 +11,10 @@
 			{
 				"name": "MURDER",
 				"class_name": "Murder"
+			},
+			{
+				"name": "ODDS_ON",
+				"class_name": "OddsOn"
 			}
 		]
 	},
@@ -20,6 +24,12 @@
 			"new_sqlite_classes": [
 			"Paranoia",
 			"Murder"
+			]
+		},
+		{
+			"tag": "v2",
+			"new_sqlite_classes": [
+				"OddsOn"
 			]
 		}
 	]
