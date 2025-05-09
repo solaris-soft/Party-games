@@ -57,8 +57,9 @@ export class Murder extends DurableObject<Env> {
     }
 
     const { 0: client, 1: server } = new WebSocketPair();
-    const roomId = new URL(request.url).searchParams.get('roomId');
-    const playerId = new URL(request.url).searchParams.get('playerId');
+    const url = new URL(request.url);
+    const roomId = url.searchParams.get('roomId');
+    const playerId = url.searchParams.get('playerId');
 
     if (!roomId || !playerId) {
       return new Response('Missing roomId or playerId', { status: 400 });
@@ -95,19 +96,27 @@ export class Murder extends DurableObject<Env> {
       case 'join':
         await this.handleJoinRoom(roomId, playerId, data.name);
         break;
-      case 'ready':
-        await this.handlePlayerReady(roomId, playerId);
-        break;
-      case 'vote':
-        await this.handleVote(roomId, playerId, data.votedPlayerId);
-        break;
-      case 'murder':
-        await this.handleMurder(roomId, playerId, data.targetPlayerId);
-        break;
+      default:
+        const room = this.gameState.rooms.find(r => r.id === roomId);
+        if (!room) return;
+
+        switch (data.type) {
+          case 'ready':
+            await this.handlePlayerReady(roomId, playerId);
+            break;
+          case 'vote':
+            await this.handleVote(roomId, playerId, data.votedPlayerId);
+            break;
+          case 'murder':
+            await this.handleMurder(roomId, playerId, data.targetPlayerId);
+            break;
+        }
     }
   }
 
   private async handleJoinRoom(roomId: string, playerId: string, name: string) {
+    console.log(`Handling join room: roomId=${roomId}, playerId=${playerId}, name=${name}`);
+    
     let room = this.gameState.rooms.find(r => r.id === roomId);
     if (!room) {
       room = {
@@ -127,6 +136,10 @@ export class Murder extends DurableObject<Env> {
       this.gameState.rooms.push(room);
     }
 
+    // Remove any existing player with this ID to prevent duplicates
+    room.players = room.players.filter(p => p.id !== playerId);
+    room.game.players = room.game.players.filter(p => p.id !== playerId);
+
     const player: Player = {
       id: playerId,
       name,
@@ -135,21 +148,26 @@ export class Murder extends DurableObject<Env> {
       isAlive: true
     };
 
+    console.log('Adding player to room:', player);
     room.players.push(player);
     room.game.players.push(player);
 
+    // Send current players list to the new player
     const ws = this.sessions.get(playerId);
     if (ws) {
+      console.log('Sending players list to new player:', room.players);
       ws.send(JSON.stringify({
         type: 'players_list',
         players: room.players
       }));
     }
 
+    // Send updated players list to all players in the room
+    console.log('Broadcasting updated players list to all players:', room.players);
     await this.broadcastToRoom(roomId, {
-      type: 'player_joined',
-      player
-    }, [playerId]);
+      type: 'players_list',
+      players: room.players
+    });
 
     await this.saveState();
   }
@@ -341,11 +359,14 @@ export class Murder extends DurableObject<Env> {
     const room = this.gameState.rooms.find(r => r.id === roomId);
     if (!room) return;
 
+    const messageStr = JSON.stringify(message);
     for (const player of room.players) {
-      if (excludePlayerIds.includes(player.id)) continue;
-      const ws = this.sessions.get(player.id);
-      if (ws) {
-        ws.send(JSON.stringify(message));
+      if (!excludePlayerIds.includes(player.id)) {
+        const ws = this.sessions.get(player.id);
+        if (ws) {
+          console.log(`Broadcasting to player ${player.id}:`, message);
+          ws.send(messageStr);
+        }
       }
     }
   }
