@@ -4,7 +4,8 @@ An app that utilises Cloudflare Durable Objects and Sveltekit running on Cloudfl
 
 The games:
 - [x] Paranoia
-- [ ] Murder
+- [x] Murder
+- [ ] Odds on
 - [ ] Truth or drink
 - [ ] Money 
 - [ ] Would you rather
@@ -13,6 +14,10 @@ The games:
 The Durable Objects act as websocket servers. 
 
 # Getting up and running
+
+## Environment variables
+VITE_WS_URL_DEV for the development websocket server url (localhost:8787)
+VITE_WS_URL_PROD for the production server url 
 
 ## Frontend
 
