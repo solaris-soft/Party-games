@@ -19,12 +19,17 @@
     let eliminationResult = $state<{ eliminatedPlayer: string, wasMurderer: boolean } | null>(null);
     let copySuccess = $state(false);
 
+    function getWebSocketUrl() {
+        const isDev = import.meta.env.DEV;
+        const baseUrl = isDev ? import.meta.env.VITE_WS_URL_DEV : import.meta.env.VITE_WS_URL_PROD;
+        return `${baseUrl}/ws/murder?roomId=${roomId}&playerId=${data.playerName}`;
+    }
+
     function connectWebSocket() {
         if (isConnecting) return;
         isConnecting = true;
 
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//party-app.flat-sound-6551.workers.dev/ws/murder?roomId=${roomId}&playerId=${data.playerName}`;
+        const wsUrl = getWebSocketUrl();
 
         console.log('Connecting to WebSocket:', wsUrl);
         ws = new WebSocket(wsUrl);

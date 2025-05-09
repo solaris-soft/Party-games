@@ -46,12 +46,17 @@
 		}
 	});
 
+	function getWebSocketUrl() {
+		const isDev = import.meta.env.DEV;
+		const baseUrl = isDev ? import.meta.env.VITE_WS_URL_DEV : import.meta.env.VITE_WS_URL_PROD;
+		return `${baseUrl}/ws/paranoia?roomId=${page.params.id}&playerId=${playerId}`;
+	}
+
 	function connectWebSocket() {
 		if (isConnecting) return;
 		isConnecting = true;
 
-		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const wsUrl = `${protocol}//party-app.flat-sound-6551.workers.dev/ws/paranoia?roomId=${page.params.id}&playerId=${playerId}`;
+		const wsUrl = getWebSocketUrl();
 
 		console.log('Connecting to WebSocket:', wsUrl);
 		ws = new WebSocket(wsUrl);
