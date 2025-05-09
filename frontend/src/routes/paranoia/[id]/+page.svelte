@@ -48,7 +48,7 @@
 
 	function getWebSocketUrl() {
 		const isDev = import.meta.env.DEV;
-		const baseUrl = isDev ? import.meta.env.VITE_WS_URL_DEV : import.meta.env.VITE_WS_URL_PROD;
+		const baseUrl = isDev ? import.meta.env.VITE_WS_URL_DEV : 'https://party-app-frontend.flat-sound-6551.workers.dev/';
 		return `${baseUrl}/ws/paranoia?roomId=${page.params.id}&playerId=${playerId}`;
 	}
 
