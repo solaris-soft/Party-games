@@ -7,6 +7,10 @@
 			{
 				"name": "PARANOIA",
 				"class_name": "Paranoia"
+			},
+			{
+				"name": "MURDER",
+				"class_name": "Murder"
 			}
 		]
 	},
@@ -14,7 +18,8 @@
 		{
 			"tag": "v1",
 			"new_sqlite_classes": [
-			"Paranoia"
+			"Paranoia",
+			"Murder"
 			]
 		}
 	]
