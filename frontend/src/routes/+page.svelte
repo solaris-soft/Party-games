@@ -16,6 +16,9 @@
 			case 'murder':
 				goto('/murder');
 				break;
+			case 'odds-on':
+				goto('/odds-on');
+				break;
 		}
 	}
 </script>
@@ -42,6 +45,7 @@
 			>
 				<option value="paranoia" class="bg-gray-700">Paranoia</option>
                 <option value="murder" class="bg-gray-700">Murder</option>
+				<option value="odds-on" class="bg-gray-700">Odds On</option>
 				<option value="20-questions" class="bg-gray-700">20 Questions</option>
 				<option value="truth-or-drink" class="bg-gray-700">Truth or Drink</option>
 			</select>
