@@ -21,7 +21,7 @@
 
     function getWebSocketUrl() {
         const isDev = import.meta.env.DEV;
-        const baseUrl = isDev ? import.meta.env.VITE_WS_URL_DEV : 'https://party-app-frontend.flat-sound-6551.workers.dev/';
+        const baseUrl = isDev ? import.meta.env.VITE_WS_URL_DEV : 'https://party-app.flat-sound-6551.workers.dev/';
         return `${baseUrl}/ws/murder?roomId=${roomId}&playerId=${data.playerName}`;
     }
 
