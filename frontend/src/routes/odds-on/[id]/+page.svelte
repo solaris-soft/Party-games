@@ -2,7 +2,6 @@
 	import type { PageProps } from './$types';
 	import { onMount, onDestroy } from 'svelte';
 	import { fly, scale } from 'svelte/transition';
-	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 
 	let { data }: PageProps = $props();
@@ -281,7 +280,7 @@
 								</div>
 								<div class="flex gap-3">
 									<button
-										on:click={submitSecret}
+										onclick={submitSecret}
 										class="flex-1 px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative disabled:opacity-50 disabled:cursor-not-allowed"
 										disabled={submittedSecrets.length >= 10 || !secretInput.trim()}
 									>
@@ -290,7 +289,7 @@
 										<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-green-800/30">]</span>
 									</button>
 									<button
-										on:click={markReady}
+										onclick={markReady}
 										class="flex-1 px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative disabled:opacity-50 disabled:cursor-not-allowed"
 										disabled={submittedSecrets.length === 0}
 									>
@@ -327,7 +326,7 @@
 							<div class="grid gap-3">
 								{#each players as player}
 									<button
-										on:click={() => voteForPlayer(player.id)}
+										onclick={() => voteForPlayer(player.id)}
 										class="w-full px-4 py-2 text-green-300/90 bg-green-900/20 hover:bg-green-800/30 rounded-sm transition-all duration-300 hover:scale-[1.02] border border-green-800/30"
 									>
 										{player.name}
@@ -355,7 +354,7 @@
 					<div class="space-y-6">
 						<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Waiting for next round...</h3>
 						<button
-							on:click={markReady}
+							onclick={markReady}
 							class="w-full px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative"
 						>
 							<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-green-800/30">[</span>
@@ -366,7 +365,7 @@
 				{/if}
 
 				<button
-					on:click={handleReturnToMenu}
+					onclick={handleReturnToMenu}
 					class="mt-8 w-full px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-red-900/40 hover:bg-red-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-red-800/30 relative"
 				>
 					<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-red-800/30">[</span>
