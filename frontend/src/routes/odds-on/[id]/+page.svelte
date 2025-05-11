@@ -18,39 +18,16 @@
 	let playerId = crypto.randomUUID();
 	let currentRound = $state(0);
 	let showContent = $state(false);
-	let riddleText = $state('');
 	let hasSubmittedSecret = $state(false);
 	let secretInput = $state('');
 	let submittedSecrets: string[] = $state([]);
 	let votingResults: { mostVotedPlayer: { id: string; name: string } | null; isCorrect: boolean } | null = $state(null);
 	let roundEndTimeout: number | null = $state(null);
-
-	const riddles = [
-		'what are the odds?',
-		'can you solve the puzzle?',
-		'do you dare to play?',
-		'the game of chance awaits...',
-		'are you ready to gamble?',
-		"joker's wild...",
-		'place your bets...',
-		'the house always wins...'
-	];
-	let riddleInterval: ReturnType<typeof setInterval>;
+	let showCopiedTooltip = $state(false);
 
 	onMount(() => {
 		showContent = true;
 		connectWebSocket();
-
-		// Create subtle riddle effect
-		let riddleIndex = 0;
-		riddleInterval = setInterval(() => {
-			riddleText = riddles[riddleIndex];
-			riddleIndex = (riddleIndex + 1) % riddles.length;
-		}, 3000);
-
-		return () => {
-			clearInterval(riddleInterval);
-		};
 	});
 
 	onDestroy(() => {
@@ -191,190 +168,212 @@
 	function handleReturnToMenu() {
 		goto('/');
 	}
+
+	function copyShareLink() {
+		const shareUrl = `${window.location.origin}/odds-on/${id}`;
+		navigator.clipboard.writeText(shareUrl).then(() => {
+			showCopiedTooltip = true;
+			setTimeout(() => {
+				showCopiedTooltip = false;
+			}, 2000);
+		});
+	}
 </script>
 
-<div class="min-h-screen bg-black flex items-center justify-center p-4">
-	{#if showContent}
-		<div
-			class="bg-black/95 backdrop-blur-sm border border-green-800/30 rounded-sm p-4 sm:p-8 shadow-[0_0_15px_rgba(0,255,0,0.05)] riddler-card relative max-w-[95vw] sm:max-w-2xl mx-auto"
-			in:scale={{ duration: 800, delay: 400 }}
-		>
-			<!-- Decorative corners -->
-			<div
-				class="absolute top-0 left-0 w-4 sm:w-8 h-4 sm:h-8 border-t-2 border-l-2 border-green-800/30"
-			></div>
-			<div
-				class="absolute top-0 right-0 w-4 sm:w-8 h-4 sm:h-8 border-t-2 border-r-2 border-green-800/30"
-			></div>
-			<div
-				class="absolute bottom-0 left-0 w-4 sm:w-8 h-4 sm:h-8 border-b-2 border-l-2 border-green-800/30"
-			></div>
-			<div
-				class="absolute bottom-0 right-0 w-4 sm:w-8 h-4 sm:h-8 border-b-2 border-r-2 border-green-800/30"
-			></div>
-
-			<!-- Decorative lines -->
-			<div
-				class="absolute top-0 left-1/2 w-px h-full bg-gradient-to-b from-green-800/30 via-transparent to-green-800/30"
-			></div>
-			<div
-				class="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-green-800/30 via-transparent to-green-800/30"
-			></div>
-
-			<h2
-				class="text-3xl sm:text-4xl md:text-5xl font-['Black+Jack'] text-center text-green-500/90 mb-8 sm:mb-12 relative tracking-wider"
-				in:fly={{ y: 20, duration: 800, delay: 600 }}
+<div class="min-h-screen bg-black flex flex-col">
+	<!-- Top Bar -->
+	<div class="bg-green-900/20 border-b border-green-800/30 p-4 flex items-center justify-between">
+		<div class="flex items-center gap-4">
+			<button
+				onclick={handleReturnToMenu}
+				class="px-4 py-2 text-sm font-['IBM+Plex+Mono'] text-green-400/70 hover:text-green-400/90 transition-colors duration-300 flex items-center gap-2"
 			>
-				<span
-					class="absolute -left-4 sm:-left-6 top-1/2 transform -translate-y-1/2 text-lg sm:text-xl opacity-50"
-					>♠️</span
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+				</svg>
+				Menu
+			</button>
+			<div class="text-sm font-['IBM+Plex+Mono'] text-green-400/70">
+				Room: <span class="text-green-400/90">{id.slice(0, 8)}...</span>
+			</div>
+		</div>
+		<div class="relative">
+			<button
+				onclick={copyShareLink}
+				class="px-4 py-2 text-sm font-['IBM+Plex+Mono'] text-green-400/70 hover:text-green-400/90 transition-colors duration-300 flex items-center gap-2"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+				</svg>
+				Share Link
+			</button>
+			{#if showCopiedTooltip}
+				<div
+					class="absolute top-full right-0 mt-2 px-3 py-1 text-sm font-['IBM+Plex+Mono'] text-green-400/90 bg-green-900/40 rounded-sm border border-green-800/30"
+					in:fly={{ y: 10, duration: 200 }}
+					out:fly={{ y: 10, duration: 200 }}
 				>
-				ODDS ON
-				<span
-					class="absolute -right-4 sm:-right-6 top-1/2 transform -translate-y-1/2 text-lg sm:text-xl opacity-50"
-					>♣️</span
-				>
-			</h2>
-
-			{#if !isConnected}
-				<div class="text-center text-green-400/70">
-					<p>Connecting to game server...</p>
+					Copied to clipboard!
 				</div>
-			{:else if error}
-				<div class="text-center text-red-400/70">
-					<p>{error}</p>
-				</div>
-			{:else}
-				{#if gameStatus === 'waiting'}
-					<div class="space-y-6">
-						<p class="text-green-400/70 text-center font-['IBM+Plex+Mono']">{riddleText}</p>
-						
-						{#if !hasSubmittedSecret}
-							<div class="space-y-4">
-								<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">
-									Enter your secrets ({submittedSecrets.length}/10)
-								</h3>
-								
-								{#if submittedSecrets.length > 0}
-									<div class="bg-green-900/20 p-4 rounded-sm border border-green-800/30 space-y-2">
-										<h4 class="text-sm font-['IBM+Plex+Mono'] text-green-400/70">Your secrets:</h4>
-										<ul class="space-y-1">
-											{#each submittedSecrets as secret, i}
-												<li class="text-green-300/90 text-sm flex items-center gap-2">
-													<span class="text-green-500/50">[{i + 1}]</span>
-													<span>{secret}</span>
-												</li>
-											{/each}
-										</ul>
-									</div>
-								{/if}
-
-								<div class="relative">
-									<input
-										type="text"
-										bind:value={secretInput}
-										placeholder="Type your secret..."
-										class="w-full bg-black/80 border-2 border-green-900/50 rounded-lg px-4 py-3 text-green-300 font-['IBM+Plex+Mono'] placeholder-green-900/50 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700 transition-all duration-300"
-										disabled={submittedSecrets.length >= 10}
-									/>
-								</div>
-								<div class="flex gap-3">
-									<button
-										onclick={submitSecret}
-										class="flex-1 px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative disabled:opacity-50 disabled:cursor-not-allowed"
-										disabled={submittedSecrets.length >= 10 || !secretInput.trim()}
-									>
-										<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-green-800/30">[</span>
-										Add Secret
-										<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-green-800/30">]</span>
-									</button>
-									<button
-										onclick={markReady}
-										class="flex-1 px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative disabled:opacity-50 disabled:cursor-not-allowed"
-										disabled={submittedSecrets.length === 0}
-									>
-										<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-green-800/30">[</span>
-										Ready
-										<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-green-800/30">]</span>
-									</button>
-								</div>
-							</div>
-						{:else}
-							<div class="space-y-4">
-								<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Waiting for other players...</h3>
-								<ul class="space-y-2">
-									{#each players as player}
-										<li class="flex items-center justify-between text-green-300/90">
-											<span>{player.name}</span>
-											{#if player.ready}
-												<span class="text-green-500">✓</span>
-											{/if}
-										</li>
-									{/each}
-								</ul>
-							</div>
-						{/if}
-					</div>
-				{:else if gameStatus === 'voting'}
-					<div class="space-y-6">
-						<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Round {currentRound}</h3>
-						<div class="bg-green-900/20 p-4 rounded-sm border border-green-800/30">
-							<p class="text-green-300/90 text-center font-['IBM+Plex+Mono']">{currentSecret}</p>
-						</div>
-						<div class="space-y-4">
-							<h4 class="text-lg font-['Crimson+Text'] text-green-400/80 text-center">Who do you think this belongs to?</h4>
-							<div class="grid gap-3">
-								{#each players as player}
-									<button
-										onclick={() => voteForPlayer(player.id)}
-										class="w-full px-4 py-2 text-green-300/90 bg-green-900/20 hover:bg-green-800/30 rounded-sm transition-all duration-300 hover:scale-[1.02] border border-green-800/30"
-									>
-										{player.name}
-									</button>
-								{/each}
-							</div>
-						</div>
-					</div>
-				{:else if gameStatus === 'results'}
-					<div class="space-y-6">
-						<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Results</h3>
-						{#if votingResults}
-							<div class="bg-green-900/20 p-4 rounded-sm border border-green-800/30">
-								<p class="text-green-300/90 text-center">
-									{#if votingResults.isCorrect}
-										The majority guessed correctly! {votingResults.mostVotedPlayer?.name} drinks!
-									{:else}
-										The majority guessed wrong! Everyone drinks!
-									{/if}
-								</p>
-							</div>
-						{/if}
-					</div>
-				{:else if gameStatus === 'answer'}
-					<div class="space-y-6">
-						<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Waiting for next round...</h3>
-						<button
-							onclick={markReady}
-							class="w-full px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative"
-						>
-							<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-green-800/30">[</span>
-							Ready for Next Round
-							<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-green-800/30">]</span>
-						</button>
-					</div>
-				{/if}
-
-				<button
-					onclick={handleReturnToMenu}
-					class="mt-8 w-full px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-red-900/40 hover:bg-red-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-red-800/30 relative"
-				>
-					<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-red-800/30">[</span>
-					Main Menu
-					<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-red-800/30">]</span>
-				</button>
 			{/if}
 		</div>
-	{/if}
+	</div>
+
+	<!-- Main Content -->
+	<div class="flex-1 flex items-center justify-center p-4">
+		{#if showContent}
+			<div
+				class="bg-black/95 backdrop-blur-sm border border-green-800/30 rounded-sm p-4 sm:p-8 shadow-[0_0_15px_rgba(0,255,0,0.05)] riddler-card relative max-w-[95vw] sm:max-w-2xl mx-auto"
+				in:scale={{ duration: 800, delay: 400 }}
+			>
+				<!-- Decorative corners -->
+				<div class="absolute top-0 left-0 w-4 sm:w-8 h-4 sm:h-8 border-t-2 border-l-2 border-green-800/30"></div>
+				<div class="absolute top-0 right-0 w-4 sm:w-8 h-4 sm:h-8 border-t-2 border-r-2 border-green-800/30"></div>
+				<div class="absolute bottom-0 left-0 w-4 sm:w-8 h-4 sm:h-8 border-b-2 border-l-2 border-green-800/30"></div>
+				<div class="absolute bottom-0 right-0 w-4 sm:w-8 h-4 sm:h-8 border-b-2 border-r-2 border-green-800/30"></div>
+
+				<!-- Decorative lines -->
+				<div class="absolute top-0 left-1/2 w-px h-full bg-gradient-to-b from-green-800/30 via-transparent to-green-800/30"></div>
+				<div class="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-green-800/30 via-transparent to-green-800/30"></div>
+
+				<h2
+					class="text-3xl sm:text-4xl md:text-5xl font-['Black+Jack'] text-center text-green-500/90 mb-8 sm:mb-12 relative tracking-wider"
+					in:fly={{ y: 20, duration: 800, delay: 600 }}
+				>
+					<span class="absolute -left-4 sm:-left-6 top-1/2 transform -translate-y-1/2 text-lg sm:text-xl opacity-50">♠️</span>
+					ODDS ON
+					<span class="absolute -right-4 sm:-right-6 top-1/2 transform -translate-y-1/2 text-lg sm:text-xl opacity-50">♣️</span>
+				</h2>
+
+				{#if !isConnected}
+					<div class="text-center text-green-400/70">
+						<p>Connecting to game server...</p>
+					</div>
+				{:else if error}
+					<div class="text-center text-red-400/70">
+						<p>{error}</p>
+					</div>
+				{:else}
+					{#if gameStatus === 'waiting'}
+						<div class="space-y-6">
+							{#if !hasSubmittedSecret}
+								<div class="space-y-4">
+									<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">
+										Enter your secrets ({submittedSecrets.length}/10)
+									</h3>
+									
+									{#if submittedSecrets.length > 0}
+										<div class="bg-green-900/20 p-4 rounded-sm border border-green-800/30 space-y-2">
+											<h4 class="text-sm font-['IBM+Plex+Mono'] text-green-400/70">Your secrets:</h4>
+											<ul class="space-y-1">
+												{#each submittedSecrets as secret, i}
+													<li class="text-green-300/90 text-sm flex items-center gap-2">
+														<span class="text-green-500/50">[{i + 1}]</span>
+														<span>{secret}</span>
+													</li>
+												{/each}
+											</ul>
+										</div>
+									{/if}
+
+									<div class="relative">
+										<input
+											type="text"
+											bind:value={secretInput}
+											placeholder="Type your secret..."
+											class="w-full bg-black/80 border-2 border-green-900/50 rounded-lg px-4 py-3 text-green-300 font-['IBM+Plex+Mono'] placeholder-green-900/50 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700 transition-all duration-300"
+											disabled={submittedSecrets.length >= 10}
+										/>
+									</div>
+									<div class="flex gap-3">
+										<button
+											onclick={submitSecret}
+											class="flex-1 px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative disabled:opacity-50 disabled:cursor-not-allowed"
+											disabled={submittedSecrets.length >= 10 || !secretInput.trim()}
+										>
+											<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-green-800/30">[</span>
+											Add Secret
+											<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-green-800/30">]</span>
+										</button>
+										<button
+											onclick={markReady}
+											class="flex-1 px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative disabled:opacity-50 disabled:cursor-not-allowed"
+											disabled={submittedSecrets.length === 0}
+										>
+											<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-green-800/30">[</span>
+											Ready
+											<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-green-800/30">]</span>
+										</button>
+									</div>
+								</div>
+							{:else}
+								<div class="space-y-4">
+									<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Waiting for other players...</h3>
+									<ul class="space-y-2">
+										{#each players as player}
+											<li class="flex items-center justify-between text-green-300/90">
+												<span>{player.name}</span>
+												{#if player.ready}
+													<span class="text-green-500">✓</span>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
+						</div>
+					{:else if gameStatus === 'voting'}
+						<div class="space-y-6">
+							<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Round {currentRound}</h3>
+							<div class="bg-green-900/20 p-4 rounded-sm border border-green-800/30">
+								<p class="text-green-300/90 text-center font-['IBM+Plex+Mono']">{currentSecret}</p>
+							</div>
+							<div class="space-y-4">
+								<h4 class="text-lg font-['Crimson+Text'] text-green-400/80 text-center">Who do you think this belongs to?</h4>
+								<div class="grid gap-3">
+									{#each players as player}
+										<button
+											onclick={() => voteForPlayer(player.id)}
+											class="w-full px-4 py-2 text-green-300/90 bg-green-900/20 hover:bg-green-800/30 rounded-sm transition-all duration-300 hover:scale-[1.02] border border-green-800/30"
+										>
+											{player.name}
+										</button>
+									{/each}
+								</div>
+							</div>
+						</div>
+					{:else if gameStatus === 'results'}
+						<div class="space-y-6">
+							<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Results</h3>
+							{#if votingResults}
+								<div class="bg-green-900/20 p-4 rounded-sm border border-green-800/30">
+									<p class="text-green-300/90 text-center">
+										{#if votingResults.isCorrect}
+											The majority guessed correctly! {votingResults.mostVotedPlayer?.name} drinks!
+										{:else}
+											The majority guessed wrong! Everyone drinks!
+										{/if}
+									</p>
+								</div>
+							{/if}
+						</div>
+					{:else if gameStatus === 'answer'}
+						<div class="space-y-6">
+							<h3 class="text-xl font-['Crimson+Text'] text-green-400/80 text-center">Waiting for next round...</h3>
+							<button
+								onclick={markReady}
+								class="w-full px-8 py-3 text-lg font-['Black+Jack'] text-white/90 bg-green-900/40 hover:bg-green-800/50 rounded-sm transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 group riddler-button border border-green-800/30 relative"
+							>
+								<span class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-green-800/30">[</span>
+								Ready for Next Round
+								<span class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-green-800/30">]</span>
+							</button>
+						</div>
+					{/if}
+				{/if}
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style>
