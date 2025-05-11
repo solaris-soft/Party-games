@@ -71,7 +71,7 @@
 			>
 				<option value="" class="bg-gray-700" disabled selected>Select a game mode...</option>
 				<option value="paranoia" class="bg-gray-700">Paranoia</option>
-                <option value="murder" class="bg-gray-700">Murder</option>
+				<option value="murder" class="bg-gray-700">Murder</option>
 				<option value="odds-on" class="bg-gray-700">Odds On</option>
 				<option value="20-questions" class="bg-gray-700">20 Questions</option>
 				<option value="truth-or-drink" class="bg-gray-700">Truth or Drink</option>
@@ -106,24 +106,48 @@
 	}
 
 	@keyframes bounce-subtle {
-		0%, 100% { transform: translateY(0); }
-		50% { transform: translateY(-10px); }
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-10px);
+		}
 	}
 
 	@keyframes float {
-		0%, 100% { transform: translateY(0) rotate(-2deg); }
-		50% { transform: translateY(-5px) rotate(2deg); }
+		0%,
+		100% {
+			transform: translateY(0) rotate(-2deg);
+		}
+		50% {
+			transform: translateY(-5px) rotate(2deg);
+		}
 	}
 
 	@keyframes pop-in {
-		0% { transform: scale(0.8); opacity: 0; }
-		70% { transform: scale(1.1); }
-		100% { transform: scale(1); opacity: 1; }
+		0% {
+			transform: scale(0.8);
+			opacity: 0;
+		}
+		70% {
+			transform: scale(1.1);
+		}
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
 	}
 
 	@keyframes slide-in {
-		0% { transform: translateX(-50px) rotate(-5deg); opacity: 0; }
-		100% { transform: translateX(0) rotate(0); opacity: 1; }
+		0% {
+			transform: translateX(-50px) rotate(-5deg);
+			opacity: 0;
+		}
+		100% {
+			transform: translateX(0) rotate(0);
+			opacity: 1;
+		}
 	}
 
 	.animate-bounce-subtle {

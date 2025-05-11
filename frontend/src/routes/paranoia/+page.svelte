@@ -13,7 +13,9 @@
 	></div>
 
 	<div class="relative">
-		<h2 class="text-lg sm:text-xl md:text-2xl lg:text-3xl text-red-400 mb-4 sm:mb-8 uppercase tracking-wide sm:tracking-widest relative inline-block">
+		<h2
+			class="text-lg sm:text-xl md:text-2xl lg:text-3xl text-red-400 mb-4 sm:mb-8 uppercase tracking-wide sm:tracking-widest relative inline-block"
+		>
 			How to Play
 			<div
 				class="absolute -bottom-2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent"
@@ -48,7 +50,10 @@
 			{/each}
 		</div>
 
-		<div class="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center mt-8 sm:mt-16" in:fade={{ duration: 800, delay: 1600 }}>
+		<div
+			class="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center mt-8 sm:mt-16"
+			in:fade={{ duration: 800, delay: 1600 }}
+		>
 			<button
 				class="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 rounded-lg text-lg sm:text-xl font-semibold cursor-pointer transition-all duration-300 relative overflow-hidden uppercase tracking-wider bg-red-500/10 text-red-400 border-2 border-red-500/30 hover:bg-red-500/20 hover:border-red-500/50 hover:-translate-y-0.5 group"
 				onclick={() => goto('/')}

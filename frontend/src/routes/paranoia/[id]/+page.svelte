@@ -49,7 +49,9 @@
 	function getWebSocketUrl() {
 		const isDev = import.meta.env.DEV;
 		console.log('isDev', isDev);
-		const baseUrl = isDev ? import.meta.env.VITE_WS_URL_DEV : 'https://party-app.flat-sound-6551.workers.dev';
+		const baseUrl = isDev
+			? import.meta.env.VITE_WS_URL_DEV
+			: 'https://party-app.flat-sound-6551.workers.dev';
 		return `${baseUrl}/ws/paranoia?roomId=${page.params.id}&playerId=${playerId}`;
 	}
 
@@ -163,7 +165,7 @@
 				break;
 			case 'round_start':
 				// Only start the round if we have at least 3 ready players
-				const readyPlayers = players.filter(p => p.ready).length;
+				const readyPlayers = players.filter((p) => p.ready).length;
 				if (readyPlayers < 3) {
 					console.log('Not enough ready players to start round');
 					return;
@@ -291,14 +293,18 @@
 			<div
 				class="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"
 			></div>
-			<p class="text-xl sm:text-2xl text-red-400 font-['VT323'] tracking-wider text-center px-4">ESTABLISHING CONNECTION...</p>
+			<p class="text-xl sm:text-2xl text-red-400 font-['VT323'] tracking-wider text-center px-4">
+				ESTABLISHING CONNECTION...
+			</p>
 		</div>
 	{:else}
 		<div class="space-y-4 sm:space-y-8">
 			<!-- Room Info -->
 			<div class="text-center" in:fly={{ y: -20, duration: 1000, delay: 200 }}>
 				<div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
-					<p class="text-xl sm:text-2xl text-red-500/70 tracking-widest uppercase">Room: {page.params.id}</p>
+					<p class="text-xl sm:text-2xl text-red-500/70 tracking-widest uppercase">
+						Room: {page.params.id}
+					</p>
 					<button
 						class="w-full sm:w-auto px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all duration-300 hover:border-red-500 font-['VT323'] tracking-wider"
 						onclick={copyRoomId}
@@ -315,7 +321,9 @@
 					class="bg-black/50 border border-red-500/30 p-4 sm:p-6 rounded-none"
 					in:fly={{ x: -20, duration: 800, delay: 200 }}
 				>
-					<h2 class="text-xl sm:text-2xl font-['VT323'] text-red-400 mb-4 sm:mb-6 tracking-wider uppercase">
+					<h2
+						class="text-xl sm:text-2xl font-['VT323'] text-red-400 mb-4 sm:mb-6 tracking-wider uppercase"
+					>
 						Players
 					</h2>
 					<div class="space-y-2 sm:space-y-3">
@@ -328,7 +336,9 @@
 								in:fly={{ y: 20, duration: 400, delay: i * 100 }}
 							>
 								<div class="flex justify-between items-center">
-									<span class="font-['VT323'] text-red-400 tracking-wider text-sm sm:text-base">{player.name}</span>
+									<span class="font-['VT323'] text-red-400 tracking-wider text-sm sm:text-base"
+										>{player.name}</span
+									>
 									{#if player.ready}
 										<span class="text-red-500" in:scale={{ duration: 300 }}>✓</span>
 									{/if}
@@ -380,7 +390,9 @@
 									<div
 										class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
 									></div>
-									<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">AWAITING SUBJECTS...</p>
+									<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">
+										AWAITING SUBJECTS...
+									</p>
 								</div>
 							{/if}
 						</div>
@@ -401,7 +413,9 @@
 											{currentQuestion}
 										</p>
 										<div class="space-y-4">
-											<h4 class="text-base sm:text-lg text-red-500/70 font-['VT323'] tracking-wider">
+											<h4
+												class="text-base sm:text-lg text-red-500/70 font-['VT323'] tracking-wider"
+											>
 												Select your target:
 											</h4>
 											<div class="grid grid-cols-1 gap-3 sm:gap-4">
@@ -422,7 +436,9 @@
 										<div
 											class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
 										></div>
-										<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">AWAITING QUESTION...</p>
+										<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">
+											AWAITING QUESTION...
+										</p>
 									</div>
 								{/if}
 							</div>
@@ -466,7 +482,9 @@
 										<div
 											class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
 										></div>
-										<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">AWAITING RESPONSE...</p>
+										<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">
+											AWAITING RESPONSE...
+										</p>
 									</div>
 								{/if}
 							</div>
@@ -476,7 +494,9 @@
 									class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
 								></div>
 								{#if currentQuestion}
-									<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">AWAITING TARGET SELECTION...</p>
+									<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">
+										AWAITING TARGET SELECTION...
+									</p>
 								{:else}
 									<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">
 										AWAITING QUESTION TRANSMISSION...
@@ -513,7 +533,9 @@
 								<div
 									class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
 								></div>
-								<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">AWAITING COIN FLIP...</p>
+								<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">
+									AWAITING COIN FLIP...
+								</p>
 							</div>
 						{/if}
 					{:else if gameStatus === 'revealing'}
@@ -525,7 +547,10 @@
 										<span class="text-red-500">{coinFlipResult ? 'HEADS' : 'TAILS'}</span>
 									</h3>
 								</div>
-								<div class="bg-black/50 border border-red-500/30 p-4 sm:p-8" in:scale={{ duration: 400 }}>
+								<div
+									class="bg-black/50 border border-red-500/30 p-4 sm:p-8"
+									in:scale={{ duration: 400 }}
+								>
 									{#if coinFlipResult}
 										<div class="space-y-3 sm:space-y-4">
 											<h3 class="text-lg sm:text-xl font-['VT323'] text-red-400 tracking-wider">
@@ -551,7 +576,9 @@
 									<div
 										class="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin"
 									></div>
-									<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">PREPARING NEXT ROUND...</p>
+									<p class="font-['VT323'] text-lg sm:text-xl tracking-wider">
+										PREPARING NEXT ROUND...
+									</p>
 								</div>
 							{/if}
 						</div>
@@ -599,5 +626,4 @@
 			filter: brightness(1);
 		}
 	}
-
 </style>
