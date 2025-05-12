@@ -2,11 +2,13 @@ import { WorkerEntrypoint } from "cloudflare:workers";
 import {Paranoia} from "./durable-objects/Paranoia";
 import {Murder} from "./durable-objects/Murder";
 import {OddsOn} from "./durable-objects/Odds-on";
+import {UltimateCup} from "./durable-objects/Ultimate-cup";
 
 type Env = {
     PARANOIA: DurableObjectNamespace<Paranoia> 
     MURDER: DurableObjectNamespace<Murder>
     ODDS_ON: DurableObjectNamespace<OddsOn>
+    ULTIMATE_CUP: DurableObjectNamespace<UltimateCup>
   } 
 
 var routes = [
@@ -21,6 +23,10 @@ var routes = [
   {
     path: '/ws/odds-on',
     namespace: 'ODDS_ON' as keyof Env
+  },
+  {
+    path: '/ws/ultimate-cup',
+    namespace: 'ULTIMATE_CUP' as keyof Env
   }
 ]
 
@@ -48,4 +54,4 @@ export default class PartyApp extends WorkerEntrypoint<Env> {
   }
 } 
 
-export { Paranoia, Murder, OddsOn };
+export { Paranoia, Murder, OddsOn, UltimateCup };

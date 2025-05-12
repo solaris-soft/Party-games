@@ -5,44 +5,15 @@
 	let { onNext } = $props();
 
 	let showContent = $state(false);
-	let players = $state<string[]>(['']);
+	let playerName = $state('');
 	let error = $state('');
 
-	const addPlayer = () => {
-		if (players.length < 10) {
-			players = [...players, ''];
-		}
-	};
-
-	const removePlayer = (index: number) => {
-		if (players.length > 1) {
-			players = players.filter((_, i) => i !== index);
-		}
-	};
-
-	const updatePlayer = (index: number, value: string) => {
-		players[index] = value;
-	};
-
-	const handleStart = () => {
-		// Validate players
-		if (players.length < 3) {
-			error = 'Need at least 3 players to start';
+	const handleSubmit = () => {
+		if (playerName.trim().length === 0) {
+			error = 'Please enter your name';
 			return;
 		}
-
-		if (players.some(name => !name.trim())) {
-			error = 'All players must have names';
-			return;
-		}
-
-		if (new Set(players.map(p => p.toLowerCase())).size !== players.length) {
-			error = 'Player names must be unique';
-			return;
-		}
-
-		// Start game with players
-		onNext(players);
+		onNext(playerName.trim());
 	};
 
 	onMount(() => {
@@ -77,7 +48,7 @@
 					class="absolute -left-8 sm:-left-12 top-1/2 transform -translate-y-1/2 text-3xl sm:text-4xl opacity-70 animate-float"
 					>👥</span
 				>
-				Player Setup
+				Create Room
 				<span
 					class="absolute -right-8 sm:-right-12 top-1/2 transform -translate-y-1/2 text-3xl sm:text-4xl opacity-70 animate-float-delayed"
 					>🎮</span
@@ -85,37 +56,17 @@
 			</h2>
 
 			<div class="space-y-10">
-				{#each players as _, i}
-					<div
-						class="flex items-center gap-6 group transform hover:translate-x-4 transition-transform duration-300"
-						in:fly={{ y: 20, duration: 800, delay: 800 + i * 100 }}
-					>
-						<input
-							type="text"
-							bind:value={players[i]}
-							placeholder="Enter player name"
-							class="flex-1 bg-black/50 border-2 border-yellow-500/20 text-yellow-200/90 px-8 py-4 rounded-none focus:outline-none focus:border-yellow-500/50 transition-all duration-300 placeholder-yellow-500/30 font-['IBM+Plex+Mono'] text-lg hover:bg-black/60 focus:bg-black/60"
-						/>
-						{#if players.length > 1}
-							<button
-								on:click={() => removePlayer(i)}
-								class="text-red-500/70 hover:text-red-400 transition-colors duration-300 text-3xl hover:scale-110"
-							>
-								❌
-							</button>
-						{/if}
-					</div>
-				{/each}
-
-				{#if players.length < 10}
-					<button
-						on:click={addPlayer}
-						class="w-full py-5 text-yellow-300/80 hover:text-yellow-200 border-2 border-yellow-500/20 hover:border-yellow-500/50 rounded-none transition-all duration-300 font-['IBM+Plex+Mono'] text-lg hover:bg-yellow-500/5 transform hover:skew-x-3"
-						in:fly={{ y: 20, duration: 800, delay: 800 + players.length * 100 }}
-					>
-						+ Add Player
-					</button>
-				{/if}
+				<div
+					class="flex items-center gap-6 group transform hover:translate-x-4 transition-transform duration-300"
+					in:fly={{ y: 20, duration: 800, delay: 800 }}
+				>
+					<input
+						type="text"
+						bind:value={playerName}
+						placeholder="Enter your name"
+						class="flex-1 bg-black/50 border-2 border-yellow-500/20 text-yellow-200/90 px-8 py-4 rounded-none focus:outline-none focus:border-yellow-500/50 transition-all duration-300 placeholder-yellow-500/30 font-['IBM+Plex+Mono'] text-lg hover:bg-black/60 focus:bg-black/60"
+					/>
+				</div>
 
 				{#if error}
 					<p class="text-red-400/90 text-center font-['IBM+Plex+Mono'] text-lg" in:fade>{{ error }}</p>
@@ -124,12 +75,12 @@
 
 			<div class="flex flex-col sm:flex-row gap-8 justify-center mt-20">
 				<button
-					on:click={handleStart}
+					onclick={handleSubmit}
 					class="w-full sm:w-auto px-12 sm:px-24 py-5 sm:py-6 text-2xl sm:text-3xl font-['Black+Jack'] text-white/90 bg-gradient-to-r from-purple-600/60 via-yellow-600/60 to-blue-600/60 hover:from-purple-600/80 hover:via-yellow-600/80 hover:to-blue-600/80 rounded-none transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-6 sm:gap-8 group party-button relative transform hover:skew-x-3"
 					in:fly={{ y: 20, duration: 800, delay: 2000 }}
 				>
 					<span class="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-yellow-500/20 to-blue-500/20"></span>
-					<span class="relative">Start Game</span>
+					<span class="relative">Create Room</span>
 					<span class="group-hover:opacity-50 transition-opacity text-2xl">🎮</span>
 				</button>
 			</div>
@@ -223,12 +174,4 @@
 		animation-delay: 2s;
 	}
 
-	.animate-gradient-shift {
-		animation: gradient-shift 15s ease infinite;
-		background-size: 200% 200%;
-	}
-
-	.border-gradient {
-		border-image: linear-gradient(45deg, #ffd700, #ffa500, #ffd700) 1;
-	}
 </style> 

@@ -15,6 +15,10 @@
 			{
 				"name": "ODDS_ON",
 				"class_name": "OddsOn"
+			},
+			{
+				"name": "ULTIMATE_CUP",
+				"class_name": "UltimateCup"
 			}
 		]
 	},
@@ -30,6 +34,12 @@
 			"tag": "v2",
 			"new_sqlite_classes": [
 				"OddsOn"
+			]
+		},
+		{
+			"tag": "v3",
+			"new_sqlite_classes": [
+				"UltimateCup"
 			]
 		}
 	]

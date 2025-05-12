@@ -1,21 +1,18 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import Instructions from './Instructions.svelte';
 	import Setup from './Setup.svelte';
 
 	let currentStep = $state('instructions');
-	let players = $state<string[]>([]);
 
-	const handleNext = (data?: string[]) => {
-		if (data) {
-			players = data;
+	const handleNext = () => {currentStep = 'setup';};
+
+	const handleStart = (playerName: string) => {
+		if (playerName) {
+			let roomId = crypto.randomUUID();
+			goto(`/ultimate-cup/${roomId}?playerName=${playerName}`);
 		}
 		currentStep = 'setup';
-	};
-
-	const handleStart = (data: string[]) => {
-		players = data;
-		// TODO: Navigate to game page with players
-		// goto(`/ultimate-cup/game/${generateGameId()}`);
 	};
 </script>
 
